@@ -5,6 +5,8 @@
 .DESCRIPTION
    This script will move the Network adapter and the Network type(Lanman) to the
    top most of the order list.
+   
+   Run this with $debug and $dontwrite = 1 first time to see output on what will happen.
 .EXAMPLE
    ./Set-InterfaceOrderAndNetowrkOrder.ps1
 #>
@@ -27,6 +29,8 @@ $pInfo = "my.domain" # This is the search term
 $pCheck = "Domain" # could change this to DefaultGateway or something more unique that your are searching for.
 
 $debug = 1
+$dontwrite = 1
+
 
 Push-Location
 
@@ -213,21 +217,22 @@ if($debug -eq 1){
   Write-Host $newExportOrder
   Write-Host $newRouteOrder
 }
-if($exitloop1 -eq 0){
-    if($exitloop2 -eq 0){
-        if($exitloop3 -eq 0){
-            if($exitloop4 -eq 0){
-                write-host "Writing to registry."
-
-                Set-ItemProperty '.\' -Name Bind -Value $newBindOrder
-                Set-ItemProperty '.\' -Name Export -Value $newExportOrder
-                Set-ItemProperty '.\' -Name Route -Value $newRouteOrder
-
-            }else{write-host "Someone did our work"}
-        }else{write-host "Someone did our work"}
-    }else{write-host "Someone did our work"}
-}else{write-host "Someone did our work"}
-
+if($dontwrite -eq 0){
+   if($exitloop1 -eq 0){
+       if($exitloop2 -eq 0){
+           if($exitloop3 -eq 0){
+               if($exitloop4 -eq 0){
+                   write-host "Writing to registry."
+   
+                   Set-ItemProperty '.\' -Name Bind -Value $newBindOrder
+                   Set-ItemProperty '.\' -Name Export -Value $newExportOrder
+                   Set-ItemProperty '.\' -Name Route -Value $newRouteOrder
+   
+               }else{write-host "Someone did our work"}
+           }else{write-host "Someone did our work"}
+       }else{write-host "Someone did our work"}
+   }else{write-host "Someone did our work"}
+}else{write-host "Test Run!!! Make sure you go through this script before running in production! "}
 write-host "Done."
 
 if($remote -eq 1){
