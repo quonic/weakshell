@@ -39,14 +39,6 @@ $computer | ForEach {
         Enter-PSSession $_ -Credential $cred
     }
 
-    #Settings
-    #TODO: add a way to set pInfo to the current domain that the computer is joined to.
-    $Term = "Domain" # could change this to DefaultGateway or something more unique that your are searching for.
-
-    $debug = $true
-
-
-
     Push-Location
     Set-Location hklm:\SYSTEM\CurrentControlSet\Control\NetworkProvider\Order\
     
