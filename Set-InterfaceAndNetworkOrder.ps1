@@ -17,8 +17,8 @@
    
 .EXAMPLE
    Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain"
-   Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug $false
-   Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug $false -Force $true
+   Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug
+   Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug -Force
 #>
 
 param (
@@ -26,7 +26,7 @@ param (
     [string]$Search = $(throw "-Search is required. Recommend to set to your domain that is set from you DHCP server."),
     [string]$Term = $(throw '-Term is required. Recommend to set as "Domain" or "DefaultGateway"'),
     [switch]$Debug = $true,
-    [switch]$Force = $false
+    [switch]$Force = $true
 )
 
 
