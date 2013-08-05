@@ -20,7 +20,7 @@
    Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug
    Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug -Force
 #>
-
+<#
 param (
     [string]$computer = "localhost",
     [string]$Search = $(throw "-Search is required. Recommend to set to your domain that is set from you DHCP server."),
@@ -238,3 +238,4 @@ $computer | ForEach {
 
     Pop-Location
 }
+#>
