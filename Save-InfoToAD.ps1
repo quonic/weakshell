@@ -107,8 +107,8 @@ function Save-InfoToAD
         {
             # Make our dir
             mkdir "C:\Scripts\Logs\" -ErrorAction SilentlyContinue
-            # remove our log file to update to latest.
-            rm $LogFile -ErrorAction SilentlyContinue
+            # Clear Logfile
+            Clear-Content $LogFile -ErrorAction SilentlyContinue
             $LogFile = "C:\Scripts\Logs\$env:computername.log"
         }
 
