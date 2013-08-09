@@ -20,24 +20,14 @@
    Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug
    Set-InterfaceOrderAndNetowrkOrder.ps1 -Search "domain.com" -Term "Domain" -Debug -Force
 #>
-<#
+
 param (
-    [string]$computer = "localhost",
     [string]$Search = $(throw "-Search is required. Recommend to set to your domain that is set from you DHCP server."),
     [string]$Term = $(throw '-Term is required. Recommend to set as "Domain" or "DefaultGateway"'),
     [switch]$Debug = $true,
     [switch]$Force = $true
 )
 
-
-$remote = 1 # Might remove this later
-
-$computer | ForEach {
-
-    if($remote -eq 1){
-        $cred = Get-Credential #Domain\User
-        Enter-PSSession $_ -Credential $cred
-    }
 
     Push-Location
     Set-Location hklm:\SYSTEM\CurrentControlSet\Control\NetworkProvider\Order\
@@ -232,10 +222,5 @@ $computer | ForEach {
     }else{write-host "Test Run!!! Make sure you go through this script before running in production! "}
     write-host "Done."
 
-    if($remote -eq 1){
-        Exit-PSSession
-    }
 
     Pop-Location
-}
-#>
