@@ -46,7 +46,7 @@ function Save-InfoToAD
 {
     [CmdletBinding(DefaultParameterSetName='None', 
                   PositionalBinding=$false,
-                  HelpUri = 'http://mis.gemmy.com/',
+                  HelpUri = "https://github.com/quonic/weakshell/",
                   ConfirmImpact='Low')]
     Param
     (
@@ -58,8 +58,7 @@ function Save-InfoToAD
                    ParameterSetName='Computer')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        [Alias("Computers")] 
-        $Computer,
+        $Computer = $false,
 
         # Credential pass your Get-Credential variable if needed
         [Parameter(Mandatory=$false,
@@ -67,50 +66,49 @@ function Save-InfoToAD
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
         [switch]
-        $Credential,
+        $Credential=$false,
 
         # LogFile defaults to C:\Scripts\Logs\$env:computername.log
         [Parameter(Mandatory=$false,
                    ParameterSetName='LogFile')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        $LogFile,
+        $LogFile = "C:\Scripts\Logs\$env:computername.log",
 
         # Email to Address or Addresses seperated by ;'s
         [Parameter(Mandatory=$false,
                    ParameterSetName='Email')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        $EmailAddress,
+        $EmailAddress = $env:username + "@" + $env:userdnsdomain,
 
         # Email to Address or Addresses seperated by ;'s
         [Parameter(Mandatory=$false,
                    ParameterSetName='Email')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        $EmailServer
+        $EmailServer = "mail.$env:userdnsdomain"
     )
     
     Begin
     {
-        # Change this to match your domain
-        "You should change the needed configs in this script"
-        pause
-        exit
+        $ecode = 0
+        $sub = "AD Update Log" # Mail Subject
+        $body = "See attached" # Mail Body
         
-        
-        $sBase = "ou=Workstations,DC=$env:userdomain,DC=com"
-        $smtpserver = "mail.$env:userdomain.com"
-        # check if LogFile is set
-        if($LogFile){}
-        else
-        {
-            # Make our dir
-            mkdir "C:\Scripts\Logs\" -ErrorAction SilentlyContinue
-            # Clear Logfile
-            Clear-Content $LogFile -ErrorAction SilentlyContinue
-            $LogFile = "C:\Scripts\Logs\$env:computername.log"
-        }
+        # This is a great way to determin the SearchBase based on the User's DNS Domain, a.consto.com, b.a.consto.com, etc.
+        $Domain = ""
+        $i = 0
+        $env:USERDNSDOMAIN.Split(".") | foreach {
+            if($i -eq 0){$Domain = $Domain + "DC=" + $_}else{$Domain = $Domain + ",DC=" + $_}
+            $i++}
+        # Get the folder of the log and create the folder. Disregard if there is an error as the current user shuld have access.
+        #  Shame on you for not reading the comments before running an untrusted script... :/
+        $mkdirs = $LogFile.Substring(0,$LogFile.Length - $LogFile.split('\')[$LogFile.split('\').Count - 1].Length)
+        mkdir $mkdirs -ErrorAction SilentlyContinue
+
+        # remove our log file to update to latest.
+        Clear-Content $LogFile -ErrorAction SilentlyContinue
 
         # Is a list already provided?
         if($Computer){}
@@ -119,9 +117,9 @@ function Save-InfoToAD
             # Check if credentials need to be gathered and get a list of computer from AD
             if($Credential){
                 $creds = Get-Credential -UserName "$env:userdomain\$env:username" -Message "Creds"
-                $Computer = (Get-ADComputer -Filter {enabled -eq "true"} -SearchBase $sBase -Credential $Credential -Properties cn).cn
+                $Computer = (Get-ADComputer -Filter {enabled -eq "true"} -SearchBase "ou=Workstations,$Domain" -Credential $Credential -Properties cn).cn
             }else{
-                $Computer = (Get-ADComputer -Filter {enabled -eq "true"} -SearchBase $sBase -Properties cn).cn
+                $Computer = (Get-ADComputer -Filter {enabled -eq "true"} -SearchBase "ou=Workstations,$Domain" -Properties cn).cn
             }
         }
         
@@ -133,67 +131,133 @@ function Save-InfoToAD
     {
         #Test-Connection -Computer $Computer -BufferSize 16 -Count 1 -ea 0 -TimeToLive 32 | ForEach {
         ForEach ($comp in $Computer) {
-            Try {
-                #Check if we have creds
-                if($Credential){
-                    #Get our info
-                    $name = get-wmiobject -ComputerName $comp win32_OperatingSystem -Credential $Credential -ErrorAction stop
-                    $serial = Get-wmiobject -ComputerName $comp win32_bios serialnumber -Credential $Credential -ErrorAction stop
-                    $model = Get-wmiobject -ComputerName $comp Win32_ComputerSystem Model -Credential $Credential -ErrorAction stop
-                    $user = Get-WmiObject -ComputerName $comp Win32_ComputerSystem UserName -Credential $Credential -ErrorAction stop
+            
+                #Check if computer is windows or not and that we have access
+                if(Test-Path "\\$comp\admin$\win.ini"){
 
-                    #Combine our info for AD
-                    $desc = $user.UserName.Split("\")[1] + " - " + $model.Model + " - " + $serial.SerialNumber
+                    # Call internal function
+                    if($Credential){
+                        Set-ADDescription -Computer $comp -LogFile $LogFile -Credential $Credential
+                    }else{
+                        Set-ADDescription -Computer $comp -LogFile $LogFile
+                    }
 
-                    #Save to Description in AD
-                    Set-ADComputer $name.__SERVER -Description $desc -Credential $Credential
-                }else{
-                    #Get our info
-                    $name = get-wmiobject -ComputerName $comp win32_OperatingSystem -ErrorAction stop
-                    $serial = Get-wmiobject -ComputerName $comp win32_bios serialnumber -ErrorAction stop
-                    $model = Get-wmiobject -ComputerName $comp Win32_ComputerSystem Model -ErrorAction stop
-                    $user = Get-WmiObject -ComputerName $comp Win32_ComputerSystem UserName -ErrorAction stop
-
-                    #Combine our info for AD
-                    $desc = $user.UserName.Split("\")[1] + " - " + $model.Model + " - " + $serial.SerialNumber
-
-                    #Save to Description in AD
-                    Set-ADComputer $name.__SERVER -Description $desc
+                    #Do some screen info of progress and save to log
+                    Add-content $LogFile -value "Computer; $comp; Saved;"
+                    Write-Host "Computer; $comp; Saved" -ForegroundColor Green
                 }
-                #Do some screen info of progress and save to log
-                Add-content $LogFile -value "Computer; $comp; Saved;"
-                Write-Host "Computer; $comp; Saved" -ForegroundColor Green
-
-            } Catch {
-
-                #Something went wrong, a mac or unix machine maybe
-                $errj = $_.Exception.Message
-                Add-content $LogFile -value "Error; $comp; $errj;"
-                Write-Host "Error; $comp; $errj" -ForegroundColor Red
-
-            } Finally {
-                #cleanup
-            }
+            
+            
         }
     }
     End
     {
         # Send email if told to
         if($EmailAddress){
-            $sub = "AD Update Log"
-            $body = "See attached"
-            
-            if($EmailServer){
-                $smtpserver = $EmailServer
-            }
-
             #check if we have creds and send email
             if($Credential){
                 $credusername = $Credential.UserName
-                Send-MailMessage -To $EmailAddress -From "$credusername@$env:userdomain.com" -Attachments $LogFile -Body $body -SmtpServer $smtpserver -Subject $sub -Credential $Credential
+                Send-MailMessage -To $EmailAddress -From "$credusername@$env:userdomain.com" -Attachments $LogFile -Body $body -SmtpServer $EmailServer -Subject $sub -Credential $Credential
             }else{
-                Send-MailMessage -To $EmailAddress -From "$env:username@$env:userdomain.com" -Attachments $LogFile -Body $body -SmtpServer $smtpserver -Subject $sub
+                Send-MailMessage -To $EmailAddress -From "$env:username@$env:userdomain.com" -Attachments $LogFile -Body $body -SmtpServer $EmailServer -Subject $sub
             }
         }
+
+        if ($ecode -gt 0){
+            exit 1775 # A null context handle was passed from the client to the host during a remote procedure call.
+            #Close enough error to return in task scheduler, better than 0x0...
+
+        }
+        exit 0
     }
 }
+
+
+
+
+function Set-ADDescription
+{
+Param
+    (
+        # Computer or list of computers by netbios name, dns name or ip
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        $Computer,
+
+        # Credential pass your Get-Credential variable if needed
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        $Credential=$false,
+
+        # LogFile defaults to C:\Scripts\Logs\$env:computername.log
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        $LogFile = "C:\Scripts\Logs\$env:computername.log"
+    )
+    Try {
+        #Check if we have creds
+        if($Credential){
+            #Get our info
+            $name = get-wmiobject -ComputerName $Computer win32_OperatingSystem -Credential $Credential -ErrorAction stop
+            $serial = Get-wmiobject -ComputerName $Computer win32_bios serialnumber -Credential $Credential -ErrorAction stop
+            $model = Get-wmiobject -ComputerName $Computer Win32_ComputerSystem Model -Credential $Credential -ErrorAction stop
+            $user = Get-WmiObject -ComputerName $Computer Win32_ComputerSystem UserName -Credential $Credential -ErrorAction stop
+
+            #Combine our info for AD
+            $desc = $user.UserName.Split("\")[1] + " - " + $model.Model + " - " + $serial.SerialNumber
+
+            #Save to Description in AD
+            Set-ADComputer $name.__SERVER -Description $desc -Credential $Credential
+        }else{
+            #Get our info
+            $name = get-wmiobject -ComputerName $Computer win32_OperatingSystem -ErrorAction stop
+            $serial = Get-wmiobject -ComputerName $Computer win32_bios serialnumber -ErrorAction stop
+            $model = Get-wmiobject -ComputerName $Computer Win32_ComputerSystem Model -ErrorAction stop
+            $user = Get-WmiObject -ComputerName $Computer Win32_ComputerSystem UserName -ErrorAction stop
+
+            # Check that info is atleast not null...
+            if($user.UserName -and $model.Model -and $serial.SerialNumber){
+                #Combine our info for AD
+                $desc = $user.UserName.Split("\")[1] + " - " + $model.Model + " - " + $serial.SerialNumber
+                #Save to Description in AD
+                Set-ADComputer $name.__SERVER -Description $desc
+            }else{
+                Add-content $LogFile -value "Error; $Computer; not giving info"
+                Write-Host -Message "Error; $Computer; not giving info"
+                return
+            }
+
+                        
+        }
+    } Catch {
+
+        #Something went wrong, a mac or unix machine maybe
+        $errj = $_.Exception.Message
+        Add-content $LogFile -value "Error; $Computer; $errj;"
+        Write-Host "Error; $Computer; $errj" -ForegroundColor Red
+        $ecode = $ecode + 1
+
+    } Finally {
+        #cleanup
+    }
+
+}
+
+
+
+if($Host.Name -eq "Windows PowerShell ISE Host")
+{
+    #In ISE or Running from console
+    # Do nothing
+    Write-Host "Run me Save-InfoToAD"
+    exit 1067
+}else
+{
+    #We are being run in a script use defaults
+    Save-InfoToAD
+}
+
+Export-ModuleMember -function Save-InfoToAD
