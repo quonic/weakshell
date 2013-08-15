@@ -142,9 +142,7 @@ function Save-InfoToAD
                         Set-ADDescription -Computer $comp -LogFile $LogFile
                     }
 
-                    #Do some screen info of progress and save to log
-                    Add-content $LogFile -value "Computer; $comp; Saved;"
-                    Write-Host "Computer; $comp; Saved" -ForegroundColor Green
+                    
                 }
             
             
@@ -164,9 +162,13 @@ function Save-InfoToAD
         }
 
         if ($ecode -gt 0){
-            exit 1775 # A null context handle was passed from the client to the host during a remote procedure call.
-            #Close enough error to return in task scheduler, better than 0x0...
-
+            
+            if($Host.Name -eq "Windows PowerShell ISE Host")
+            {}else
+            {
+                exit 1775 # A null context handle was passed from the client to the host during a remote procedure call.
+                #Close enough error to return in task scheduler, better than 0x0...
+            }
         }
         exit 0
     }
@@ -226,10 +228,12 @@ Param
                 Set-ADComputer $name.__SERVER -Description $desc
             }else{
                 Add-content $LogFile -value "Error; $Computer; not giving info"
-                Write-Host -Message "Error; $Computer; not giving info"
+                Write-Host "Error; $Computer; not giving info"
                 return
             }
-
+            #Do some screen info of progress and save to log
+            Add-content $LogFile -value "Computer; $comp; Saved;"
+            Write-Host "Computer; $comp; Saved" -ForegroundColor Green
                         
         }
     } Catch {
