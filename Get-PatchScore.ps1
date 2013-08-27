@@ -93,7 +93,7 @@ function Get-PatchScore
     Begin
     {
         $ecode = 0
-        $sub = "AD Update Log" # Mail Subject
+        $sub = "Workstation Patch Score" # Mail Subject
         $body = "See attached" # Mail Body
         
         # This is a great way to determin the SearchBase based on the User's DNS Domain, a.consto.com, b.a.consto.com, etc.
@@ -125,7 +125,7 @@ function Get-PatchScore
         
         $dtime = Get-Date
         Add-content $LogFile -value "Type; Name; IP; Status; $dtime;"
-        Write-Host "Type; Name; Status" -ForegroundColor Cyan
+        Write-Host "Type; Name; PatchScore" -ForegroundColor Cyan
     }
     Process
     {
@@ -136,53 +136,27 @@ function Get-PatchScore
                 if(Test-Path "\\$comp\admin$\win.ini"){
 
                     Try {
-                        if($Credential){
-                            $k = Invoke-Command -ComputerName $comp -Credential $Credential -ScriptBlock {
+                        $block = {
                                 $UpdateSession = New-Object -ComObject Microsoft.Update.Session 
                                 $SearchResult = $null
                                 $UpdateSearcher = $UpdateSession.CreateUpdateSearcher()
                                 $UpdateSearcher.Online = $true
                                 $installed = 0
                                 $notinstalled = 0
-
-
                                 $SearchResult = $UpdateSearcher.Search("IsInstalled=1 and Type='Software'") 
-                                $i = 1
-                                foreach($Update in $SearchResult.Updates){$i += 1} #Write-Host "$i) $($Update.Title + " | " + $Update.SecurityBulletinIDs)"
-                                [Double]$installed = $i
+                                [Double]$installed = $SearchResult.Updates.Count
 
                                 $SearchResult = $UpdateSearcher.Search("IsInstalled=0 and Type='Software'") 
-                                $i = 1
-                                foreach($Update in $SearchResult.Updates){$i += 1} #Write-Host "$i) $($Update.Title + " | " + $Update.SecurityBulletinIDs)"
-                                [Double]$notinstalled = $i
+                                [Double]$notinstalled = $SearchResult.Updates.Count
 
                                 Write-Host (100 - (($notinstalled / $installed) * 100))
                                 return (100 - (($notinstalled / $installed) * 100))
                             }
+                        if($Credential){
+                            $k = Invoke-Command -ComputerName $comp -Credential $Credential -ScriptBlock $block
                         
                         }else{
-                            $k = Invoke-Command -ComputerName $comp -ScriptBlock {
-                                $UpdateSession = New-Object -ComObject Microsoft.Update.Session 
-                                $SearchResult = $null
-                                $UpdateSearcher = $UpdateSession.CreateUpdateSearcher()
-                                $UpdateSearcher.Online = $true
-                                $installed = 0
-                                $notinstalled = 0
-
-
-                                $SearchResult = $UpdateSearcher.Search("IsInstalled=1 and Type='Software'") 
-                                $i = 1
-                                foreach($Update in $SearchResult.Updates){$i += 1} #Write-Host "$i) $($Update.Title + " | " + $Update.SecurityBulletinIDs)"
-                                [Double]$installed = $i
-
-                                $SearchResult = $UpdateSearcher.Search("IsInstalled=0 and Type='Software'") 
-                                $i = 1
-                                foreach($Update in $SearchResult.Updates){$i += 1} #Write-Host "$i) $($Update.Title + " | " + $Update.SecurityBulletinIDs)"
-                                [Double]$notinstalled = $i
-
-                                Write-Host (100 - (($notinstalled / $installed) * 100))
-                                return (100 - (($notinstalled / $installed) * 100))
-                            }
+                            $k = Invoke-Command -ComputerName $comp -ScriptBlock $block
                         }
                         
                         #Do some screen info of progress and save to log
