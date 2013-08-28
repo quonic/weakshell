@@ -68,7 +68,7 @@ function Get-PatchScore
         [switch]
         $Credential=$false,
 
-        # LogFile defaults to C:\Scripts\Logs\$env:computername.log
+        # LogFile defaults to C:\Scripts\Logs\PatchScores.log
         [Parameter(Mandatory=$false,
                    ParameterSetName='LogFile')]
         [ValidateNotNull()]
@@ -93,7 +93,7 @@ function Get-PatchScore
     Begin
     {
         $ecode = 0
-        $sub = "Workstation Patch Score" # Mail Subject
+        $sub = "Workstation Patch Score from $env:computername" # Mail Subject
         $body = "See attached" # Mail Body
         
         # This is a great way to determin the SearchBase based on the User's DNS Domain, a.consto.com, b.a.consto.com, etc.
