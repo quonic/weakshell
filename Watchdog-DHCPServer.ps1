@@ -7,6 +7,7 @@ Notes from vocatus's batch file:
 #                  2. Proper firewall configuration to allow connection
 #                  3. Proper permissions on the DHCP backup directory
 # Author:          vocatus on reddit.com/r/usefulscripts
+#                  Spyingwind/Quonic Converted to Powershell
 # Version:         1.2  + Added functionality to recover the DHCP database BACK to the primary server after a failure. Now when the backup server detects that
 #                         the primary server has come back online after an outage, it will export its current copy of the DHCP database, upload it back to the 
 #                         primary server, import it, and spin it back up using the most recent copy. This addresses the issue of new leases being passed out during
