@@ -267,7 +267,7 @@ Log:        $LogPath\$LogFile.log"
 				# Send the database back to the primary server
 				Write-Output "$(Get-Date)         Uploading current DHCP database to $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
 				Write-Verbose "$(Get-Date)         Uploading current DHCP database to $Remote..."
-				xcopy "$env:TEMP\DHCP-RECOVERY\*" "\\$Remote\c$\$Operating\DHCP-RECOVERY\" /S /Y /Q 2>NUL
+				[System.Diagnostics.Process]::Start( "xcopy '$env:TEMP\DHCP-RECOVERY\*' '\\$Remote\c$\$Operating\DHCP-RECOVERY\' /S /Y /Q 2>NUL")
 
 				# Import the current database on the primary server
 				Write-Output "$(Get-Date)         Importing current DHCP database on $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
