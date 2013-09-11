@@ -145,20 +145,20 @@ Log:        $LogPath\$LogFile.log"
         $dhcpstatus = (if((Get-Service -ComputerName $Remote -Name Dhcpserver -ErrorAction SilentlyContinue | Where-Object {$_.status -eq "running"})){$true}else{$false})
 
         # I don't think this is needed...
-        Write-Output "$(Get-Date)Verifying proper operation of DHCP server on $Remote, please wait..."
+        Write-Verbose "$(Get-Date)Verifying proper operation of DHCP server on $Remote, please wait..."
         Write-Output "$(Get-Date)Pinging $Remote..."  | Out-File -FilePath $LogPath\$LogFile.log -Append
-        Write-Output "$(Get-Date)Pinging $Remote..."
+        Write-Verbose "$(Get-Date)Pinging $Remote..."
 
         if($pingstatus){
             Write-Output "$(Get-Date) SUCCESS $Remote responded to ping." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date) SUCCESS $Remote responded to ping."
+            Write-Verbose "$(Get-Date) SUCCESS $Remote responded to ping."
         }else{
             Write-Output "$(Get-Date) WARNING $Remote failed to respond to ping." | Out-File -FilePath $LogPath\$LogFile.log -Append
             Write-Output "$(Get-Date) WARNING $Remote failed to respond to ping."
         }
 
         Write-Output "$(Get-Date)Checking DHCP server status on $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-        Write-Output "$(Get-Date)Checking DHCP server status on $Remote..."
+        Write-Verbose "$(Get-Date)Checking DHCP server status on $Remote..."
 
         <# Another way to get a list of DHCP server, sometimes it is not correct. :/
          # Not used
@@ -169,17 +169,17 @@ Log:        $LogPath\$LogFile.log"
         if($dhcpstatus){
             # It's up and running do our backup :happydance:
             Write-Output "$(Get-Date) SUCCESS The DHCP service is running on $Remote." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date) SUCCESS The DHCP service is running on $Remote."
+            Write-Verbose "$(Get-Date) SUCCESS The DHCP service is running on $Remote."
 
             # Proceeding with backup
             Write-Output "$(Get-Date)         Fetching DHCP database backup from $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Fetching DHCP database backup from $Remote..."
+            Write-Verbose "$(Get-Date)         Fetching DHCP database backup from $Remote..."
             $proc=[System.Diagnostics.Process]::Start( "xcopy '\\$Remote\c$\$Backup\*' '$LocalBackup\backup_new_pending\' /E /Y /Q >NUL")
             if($proc.ExitCode -eq 0){
                 Write-Output "$(Get-Date) SUCCESS Backup fetched from $Remote." | Out-File -FilePath $LogPath\$LogFile.log -Append
-	            Write-Output "$(Get-Date) SUCCESS Backup fetched from $Remote."
+	            Write-Verbose "$(Get-Date) SUCCESS Backup fetched from $Remote."
 	            Write-Output "$(Get-Date)         Rotating database backups..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-	            Write-Output "$(Get-Date)         Rotating database backups..."
+	            Write-Verbose "$(Get-Date)         Rotating database backups..."
 
 	            # Rotate backups and use newest copy
 	            if(!(Test-Path "$LocalBackup\backup5")){remove-item "$LocalBackup\backup5"}
@@ -190,46 +190,46 @@ Log:        $LogPath\$LogFile.log"
                 if(!(Test-Path "$LocalBackup\backup")){move-item "$LocalBackup\backup" "$LocalBackup\backup1"}
 	            move-item "$LocalBackup\backup_new_pending" "$LocalBackup\backup"
 	            Write-Output "$(Get-Date)         Database backups rotated." | Out-File -FilePath $LogPath\$LogFile.log -Append
-	            Write-Output "$(Get-Date)         Database backups rotated."
+	            Write-Verbose "$(Get-Date)         Database backups rotated."
             }else{
         	    Write-Output "$(Get-Date) WARNING There was an error copying the backup from $Remote." | Out-File -FilePath $LogPath\$LogFile.log -Append
 	            Write-Output "$(Get-Date)         You may want to look into this since we were able to check the DHCPserver service status but the file copy failed." | Out-File -FilePath $LogPath\$LogFile.log -Append
 	            Write-Output "$(Get-Date)         Skipping new database import due to copy failure." | Out-File -FilePath $LogPath\$LogFile.log -Append
 	            Write-Output "$(Get-Date)         Job complete with errors." | Out-File -FilePath $LogPath\$LogFile.log -Append
-	            Write-Output "$(Get-Date) WARNING There was an error copying the backup from $Remote."
-	            Write-Output "$(Get-Date)         You may want to look into this since we were able to check the DHCPserver service status but the file copy failed."
-	            Write-Output "$(Get-Date)         Skipping new database import due to copy failure."
-	            Write-Output "$(Get-Date)         Job complete with errors."
+	            Write-Verbose "$(Get-Date) WARNING There was an error copying the backup from $Remote."
+	            Write-Verbose "$(Get-Date)         You may want to look into this since we were able to check the DHCPserver service status but the file copy failed."
+	            Write-Verbose "$(Get-Date)         Skipping new database import due to copy failure."
+	            Write-Verbose "$(Get-Date)         Job complete with errors."
             }
             # Import database
             Write-Output "$(Get-Date)         Starting local DHCP server to import new database..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Starting local DHCP server to import new database..."
+            Write-Verbose "$(Get-Date)         Starting local DHCP server to import new database..."
 	            Start-Service Dhcpserver
             Write-Output "$(Get-Date)         Local DHCP server running. Performing import..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Local DHCP server running. Performing import..."
+            Write-Verbose "$(Get-Date)         Local DHCP server running. Performing import..."
 	            netsh dhcp server restore "$LocalBackup\backup"
             Write-Output "$(Get-Date)         Import complete." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Import complete."
+            Write-Verbose "$(Get-Date)         Import complete."
             Write-Output "$(Get-Date)         Stopping local DHCP server..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Stopping local DHCP server..."
+            Write-Verbose "$(Get-Date)         Stopping local DHCP server..."
 	            Stop-Service Dhcpserver
             Write-Output "$(Get-Date)         Local DHCP server stopped." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Local DHCP server stopped."
+            Write-Verbose "$(Get-Date)         Local DHCP server stopped."
             Write-Output "$(Get-Date) SUCCESS Job complete, DHCP database backed up and ready for use. Exiting." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date) SUCCESS Job complete, DHCP database backed up and ready for use. Exiting."
+            Write-Verbose "$(Get-Date) SUCCESS Job complete, DHCP database backed up and ready for use. Exiting."
         }else{
             # Service ain't running, do our failover. :'(
 
             # Log this AND display to console
             Write-Output "$(Get-Date) WARNING Failover activated." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Starting local DHCP server using most recent successful backup..." | Out-File -FilePath $LogPath\$LogFile.log -Append
+            Write-Verbose "$(Get-Date)         Starting local DHCP server using most recent successful backup..." | Out-File -FilePath $LogPath\$LogFile.log -Append
             Write-Output "$(Get-Date) WARNING Could not contact primary DHCP server $Remote. Failover activated."
-            Write-Output "$(Get-Date)         Starting local DHCP server using most recent successful backup..."
+            Write-Verbose "$(Get-Date)         Starting local DHCP server using most recent successful backup..."
 	            Start-Service Dhcpserver
             Write-Output "$(Get-Date)         Local DHCP server started." | Out-File -FilePath $LogPath\$LogFile.log -Append
-            Write-Output "$(Get-Date)         Entering monitoring loop. Checking if $Remote is back up every $RecheckDelay seconds..." | Out-File -FilePath $LogPath\$LogFile.log -Append
+            Write-Verbose "$(Get-Date)         Entering monitoring loop. Checking if $Remote is back up every $RecheckDelay seconds..." | Out-File -FilePath $LogPath\$LogFile.log -Append
             Write-Output "$(Get-Date)         Local DHCP server started."
-            Write-Output "$(Get-Date)         Entering monitoring loop. Checking if $Remote is back up every $RecheckDelay seconds..."
+            Write-Verbose "$(Get-Date)         Entering monitoring loop. Checking if $Remote is back up every $RecheckDelay seconds..."
 
             #failover_loop ---------------------
             # First we ping the server and loop
@@ -239,46 +239,46 @@ Log:        $LogPath\$LogFile.log"
 	            Write-Output "$(Get-Date) FAILURE No ping response from $Remote. Waiting $RecheckDelay seconds to check again."
 	        }
             Write-Output "$(Get-Date) NOTICE  $Remote is responding to pings." | Out-File -FilePath $LogPath\$LogFile.log -Append
-	        Write-Output "$(Get-Date) NOTICE  $Remote is responding to pings."
+	        Write-Verbose "$(Get-Date) NOTICE  $Remote is responding to pings."
             
             if(Test-Connection -ComputerName $Remote -Count 5 -Quiet){
                 while(!(if((Get-Service -ComputerName $Remote -Name Dhcpserver -ErrorAction SilentlyContinue | Where-Object {$_.status -eq "running"})){$true}else{$false})){
                     # If the host responds to pings but the DHCP service isn't running, this executes
-                    Write-Out "$(Get-Date) FAILURE $Remote DHCP isn't responding (yet?). Will try again in $RecheckDelay seconds." | Out-File -FilePath $LogPath\$LogFile.log -Append
-                    Write-Out "$(Get-Date) FAILURE $Remote DHCP isn't responding (yet?). Will try again in $RecheckDelay seconds."
+                    Write-Output "$(Get-Date) FAILURE $Remote DHCP isn't responding (yet?). Will try again in $RecheckDelay seconds." | Out-File -FilePath $LogPath\$LogFile.log -Append
+                    Write-Output "$(Get-Date) FAILURE $Remote DHCP isn't responding (yet?). Will try again in $RecheckDelay seconds."
                 }
 
                 #Ping works and the service is running
                 Write-Output "$(Get-Date) SUCCESS The DHCP service is running on $Remote." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date) SUCCESS The DHCP service is running on $Remote."
+				Write-Verbose "$(Get-Date) SUCCESS The DHCP service is running on $Remote."
 				Write-Output "$(Get-Date)         Primary DHCP server $Remote is back up. Beginning recovery procedures..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Primary DHCP server $Remote is back up. Beginning recovery procedures..."
+				Write-Verbose "$(Get-Date)         Primary DHCP server $Remote is back up. Beginning recovery procedures..."
 				
 				# Back up the database that we've been running temporarily while the primary server was down
 				Write-Output "$(Get-Date)         Exporting the current DHCP database..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Exporting the current DHCP database..."
+				Write-Verbose "$(Get-Date)         Exporting the current DHCP database..."
 				netsh dhcp server backup "$env:TEMP\DHCP-RECOVERY"
 				
 				# Stop our local server since we're done performing DHCP server duties
 				Write-Output "$(Get-Date)         Stopping local DHCP server..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Stopping local DHCP server..."
+				Write-Verbose "$(Get-Date)         Stopping local DHCP server..."
 				Stop-Service Dhcpserver
 				
 				# Send the database back to the primary server
 				Write-Output "$(Get-Date)         Uploading current DHCP database to $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Uploading current DHCP database to $Remote..."
+				Write-Verbose "$(Get-Date)         Uploading current DHCP database to $Remote..."
 				xcopy "$env:TEMP\DHCP-RECOVERY\*" "\\$Remote\c$\$Operating\DHCP-RECOVERY\" /S /Y /Q 2>NUL
 
 				# Import the current database on the primary server
 				Write-Output "$(Get-Date)         Importing current DHCP database on $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Importing current DHCP database on $Remote..."
+				Write-Verbose "$(Get-Date)         Importing current DHCP database on $Remote..."
 				netsh dhcp server \\$Remote restore "\\$Remote\c$\$Operating\DHCP-RECOVERY"
 				# force a delay to let it stop
 				Start-Sleep 4000
 				
 				# Spin the primary server back up. For some reason we have to run the command twice for it to actually start. Don't ask.
 				Write-Output "$(Get-Date)         Restarting DHCP server on $Remote..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Restarting DHCP server on $Remote..."
+				Write-Verbose "$(Get-Date)         Restarting DHCP server on $Remote..."
 				(get-service -ComputerName $Remote -Name Dhcpserver).Stop() 
                 Start-Sleep 8000
 				(get-service -ComputerName $Remote -Name Dhcpserver).Start()
@@ -289,11 +289,11 @@ Log:        $LogPath\$LogFile.log"
 				
 				# Check to make sure it's working
 				Write-Output "$(Get-Date)         Verifying functionality on primary server..." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Verifying functionality on primary server..."
+				Write-Verbose "$(Get-Date)         Verifying functionality on primary server..."
 				if((Get-Service -ComputerName $Remote -Name Dhcpserver -ErrorAction SilentlyContinue | Where-Object {$_.status -eq "running"})){
                     Write-Output "$(Get-Date) SUCCESS DHCP server on $Remote is up and running. Recovery complete." | Out-File -FilePath $LogPath\$LogFile.log -Append
                 }else{
-                    Write-Output "$(Get-Date) FAILURE DHCP server on $Remote is not running. You should investigate this manually." | Out-File -FilePath $LogPath\$LogFile.log -Append
+                    Write-Verbose "$(Get-Date) FAILURE DHCP server on $Remote is not running. You should investigate this manually." | Out-File -FilePath $LogPath\$LogFile.log -Append
                 }
 
 				# Clean up
@@ -301,13 +301,13 @@ Log:        $LogPath\$LogFile.log"
 				
 				# Done.
 				Write-Output "$(Get-Date)         Exiting." | Out-File -FilePath $LogPath\$LogFile.log -Append
-				Write-Output "$(Get-Date)         Exiting."
+				Write-Verbose "$(Get-Date)         Exiting."
 				exit 0
             }else{# If no ping response, this section executes
                 Write-Output "$(Get-Date)         Okay Something is wonky here, the $Remote server was pingable before and now it isn't" | Out-File -FilePath $LogPath\$LogFile.log -Append
-                Write-Output "$(Get-Date)         Okay Something is wonky here, the $Remote server was pingable before and now it isn't"
+                Write-Verbose "$(Get-Date)         Okay Something is wonky here, the $Remote server was pingable before and now it isn't"
                 Write-Output "$(Get-Date)         Exitting to not screw up something." | Out-File -FilePath $LogPath\$LogFile.log -Append
-                Write-Output "$(Get-Date)         Exitting to not screw up something."
+                Write-Verbose "$(Get-Date)         Exitting to not screw up something."
                 exit 1
             }
 
