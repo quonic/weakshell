@@ -20,8 +20,8 @@ function Kill-Java
         # Log defaults to "$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log"
         $Log="$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log",
 
-        # ForEach-Objectce
-        $ForEach-Objectce=$true,
+        # force
+        $force=$true,
 
         # Reinstall Java? crazy...
         $Reinstall=$false,
@@ -38,7 +38,7 @@ function Kill-Java
 
     Begin
     {
-        $ForEach-Objectce_exitcode="1618"
+        $force_exitcode="1618"
         $Version="1.5.0"
         $Updated="2013-07-23"
         $Title="Java Runtime Nuker v$Version ($Updated)"
@@ -73,9 +73,9 @@ function Kill-Java
         cscript.exe $WMIdiagBin LogFilePath=$env:TEMP
         $killlist="java,javaw,javaws,jqs,jusched,iexplore,iexplorer,firefox,chrome,palemoon".Split(",")
         #########
-        #ForEach-ObjectCE-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
+        #force-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
         #########
-        if ($ForEach-Objectce=$true) {
+        if ($force=$true) {
 	        #Kill all browsers and running Java instances
 	        Write-Output "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..."
@@ -87,10 +87,10 @@ function Kill-Java
 		    Write-Verbose ""
         }
 
-        #If we DON'T want to ForEach-Objectce-close Java, then check ForEach-Object possible running Java processes and abort the script if we find any
-        if ($ForEach-Objectce=$false) {
-	        Write-Output "$(Get-Date)   Variable ForEach-ObjectCE_CLOSE_PROCESSES is set to '$ForEach-Objectce'. Checking ForEach-Object running processes beForEach-Objecte execution." | Out-File -FilePath $Log -Append
-	        Write-Verbose "$(Get-Date)   Variable ForEach-ObjectCE_CLOSE_PROCESSES is set to '$ForEach-Objectce'. Checking ForEach-Object running processes beForEach-Objecte execution."
+        #If we DON'T want to force-close Java, then check ForEach-Object possible running Java processes and abort the script if we find any
+        if ($force=$false) {
+	        Write-Output "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$force'. Checking ForEach-Object running processes beForEach-Objecte execution." | Out-File -FilePath $Log -Append
+	        Write-Verbose "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$force'. Checking ForEach-Object running processes beForEach-Objecte execution."
 
 
 	        #Search and report if processes of the list are running and exit if any are running
@@ -99,7 +99,7 @@ function Kill-Java
 		        if(Get-Process $_){
 				        Write-Output "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting." | Out-File -FilePath $Log -Append
 				        Write-Error "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting."
-				        exit $ForEach-Objectce_exitcode
+				        exit $force_exitcode
 			        }
 		        }
 	        }
@@ -110,7 +110,7 @@ function Kill-Java
 
 
         ########
-        #UNINSTALLER SECTION #-- Basically here we just brute-ForEach-Objectce every "normal" method ForEach-Object
+        #UNINSTALLER SECTION #-- Basically here we just brute-force every "normal" method ForEach-Object
         ########   removing Java, and then resort to more painstaking methods later
         Write-Output "$(Get-Date)   Targeting individual JRE versions..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   Targeting individual JRE versions..."
@@ -149,7 +149,7 @@ function Kill-Java
         Write-Verbose "$(Get-Date)   JRE 3 (AKA Java 2 Runtime v1.3.xx)..."
         #This version is so old we have to resort to different methods of removing it
         #Loop through each sub-version
-        ForEach-Objecte-Each("01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25".Split(",")) {
+        Each-Object("01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25".Split(",")) {
 	        Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'$env:ProgramFiles\JavaSoft\JRE\1.3.1_$_\Uninst.isu' -a"
 	        Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'${env:ProgramFiles(x86)}\JavaSoft\JRE\1.3.1_$_\Uninst.isu' -a"
         }
@@ -218,7 +218,7 @@ function Kill-Java
             #We do this mainly because we're using wildcards, so we want a method to roll back if we accidentally nuke the wrong thing
             Write-Output "$(Get-Date)   Backing up keys..." | Out-File -FilePath $Log -Append
             Write-Output "$(Get-Date)   Backing up keys..."
-            if("$env:TEMP\java_purge_registry_backup"){ Remove-Item -ForEach-Objectce "$env:TEMP\java_purge_registry_backup"}
+            if("$env:TEMP\java_purge_registry_backup"){ Remove-Item -force "$env:TEMP\java_purge_registry_backup"}
             mkdir "$env:TEMP\java_purge_registry_backup"
             #This line walks through the file we generated and dumps each key to a file
             ForEach-Object( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt") {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
@@ -315,17 +315,17 @@ function Kill-Java
         if("${env:ProgramFiles(x86)}"){
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." | Out-File -FilePath $Log -Append
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
-	        ForEach-ObjectEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append}}
-	        ForEach-ObjectEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append}}
-	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -ForEach-Objectce "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
+	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -force "$_" | Out-File -FilePath $Log -Append}}
+	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -force "$_" | Out-File -FilePath $Log -Append}}
+	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -force "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
         }
 
         #Nuke 64-bit Java installation directories
         Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..." | Out-File -FilePath $Log -Append
         Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..."
-        ForEach-ObjectEach-Object( "$env:ProgramFiles\Java\" $_ in (j2re*) do if exist "$_" Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append
-        ForEach-ObjectEach-Object( "$env:ProgramFiles\Java\" $_ in (jre*) do if exist "$_" Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append
-        if exist "$env:ProgramFiles\JavaSoft\JRE" Remove-Item -ForEach-Objectce "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append
+        ForEach-Object( "$env:ProgramFiles\Java\" $_ in (j2re*) do if exist "$_" Remove-Item -force "$_" | Out-File -FilePath $Log -Append
+        ForEach-Object( "$env:ProgramFiles\Java\" $_ in (jre*) do if exist "$_" Remove-Item -force "$_" | Out-File -FilePath $Log -Append
+        if exist "$env:ProgramFiles\JavaSoft\JRE" Remove-Item -force "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append
 
         #Nuke Java installer cache ( thanks to cannibalkitteh )
         Write-Output "$(Get-Date)   Purging Java installer cache..." | Out-File -FilePath $Log -Append
@@ -334,17 +334,17 @@ function Kill-Java
         if ($isXP=$true) {
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             dir "$env:SystemDrive\Documents and Settings\" /B > $env:TEMP\userlist.txt
-            ForEach-ObjectEach-Object(Get-Content "$env:TEMP\userlist.txt"){
-		        if("$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"){Remove-Item -ForEach-Objectce "$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"}
+            ForEach-Object(Get-Content "$env:TEMP\userlist.txt"){
+		        if("$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"){Remove-Item -force "$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"}
 	        }
-            ForEach-ObjectEach-Object( "$env:SystemDrive\Documents and Settings\" $_ in (jre*) do if exist "$_" {Remove-Item -ForEach-Objectce "$_"}
+            ForEach-Object( "$env:SystemDrive\Documents and Settings\" $_ in (jre*) do if exist "$_" {Remove-Item -force "$_"}
         } else {
 	        #ALL OTHER VERSIONS OF WINDOWS
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             dir $env:SystemDrive\Users /B > $env:TEMP\userlist.txt
-            ForEach-ObjectEach-Object( $_ in (Get-Content "$env:TEMP\userlist.txt")) { Remove-Item -ForEach-Objectce "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
+            ForEach-Object( $_ in (Get-Content "$env:TEMP\userlist.txt")) { Remove-Item -force "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
             #Get the other JRE directories
-            ForEach-ObjectEach-Object( "$env:SystemDrive\Users" $_ in (jre*) ){Remove-Item -ForEach-Objectce "$_"}
+            ForEach-Object( "$env:SystemDrive\Users" $_ in (jre*) ){Remove-Item -force "$_"}
         }
 
         #Miscellaneous stuff, sometimes left over by the installers
@@ -412,6 +412,6 @@ Param
         [Parameter(Mandatory=$true)]
         [string]$args
     )
-    $proc = [System.Diagnostics.Process]::Start($program,$args).WaitForEach-ObjectExit()
+    $proc = [System.Diagnostics.Process]::Start($program,$args).WaitForExit()
     return $proc
 }
