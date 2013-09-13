@@ -20,13 +20,13 @@ function Kill-Java
         # Log defaults to "$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log"
         $Log="$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log",
 
-        # Force
-        $Force=$true,
+        # ForEach-Objectce
+        $ForEach-Objectce=$true,
 
         # Reinstall Java? crazy...
         $Reinstall=$false,
 
-        # Java Install file and location, formated with x64.exe or x86.exe at the end. Have both in the same folder.
+        # Java Install file and location, ForEach-Objectmated with x64.exe or x86.exe at the end. Have both in the same folder.
         $JavaBin=".\java-x64.exe",
 
         #Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
@@ -38,7 +38,7 @@ function Kill-Java
 
     Begin
     {
-        $force_exitcode="1618"
+        $ForEach-Objectce_exitcode="1618"
         $Version="1.5.0"
         $Updated="2013-07-23"
         $Title="Java Runtime Nuker v$Version ($Updated)"
@@ -73,33 +73,33 @@ function Kill-Java
         cscript.exe $WMIdiagBin LogFilePath=$env:TEMP
         $killlist="java,javaw,javaws,jqs,jusched,iexplore,iexplorer,firefox,chrome,palemoon".Split(",")
         #########
-        #FORCE-CLOSE PROCESSES #-- Do we want to kill Java before running? If so, this is where it happens
+        #ForEach-ObjectCE-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
         #########
-        if ($Force=$true) {
+        if ($ForEach-Objectce=$true) {
 	        #Kill all browsers and running Java instances
-	        Write-Output "$(Get-Date)   Looking for and closing all running browsers and Java instances..." | Out-File -FilePath $Log -Append
-	        Write-Verbose "$(Get-Date)   Looking for and closing all running browsers and Java instances..."
+	        Write-Output "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..." | Out-File -FilePath $Log -Append
+	        Write-Verbose "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..."
 		    Write-Verbose ""
-		    for-each ($killlist) {
-			    Write-Output "Searching for $_.exe..."
+		    ForEach-Object-each ($killlist) {
+			    Write-Output "Searching ForEach-Object $_.exe..."
 			    (Get-Process $_).Kill() | Out-File -FilePath $Log -Append
 		    }
 		    Write-Verbose ""
         }
 
-        #If we DON'T want to force-close Java, then check for possible running Java processes and abort the script if we find any
-        if ($Force=$false) {
-	        Write-Output "$(Get-Date)   Variable FORCE_CLOSE_PROCESSES is set to '$Force'. Checking for running processes before execution." | Out-File -FilePath $Log -Append
-	        Write-Verbose "$(Get-Date)   Variable FORCE_CLOSE_PROCESSES is set to '$Force'. Checking for running processes before execution."
+        #If we DON'T want to ForEach-Objectce-close Java, then check ForEach-Object possible running Java processes and abort the script if we find any
+        if ($ForEach-Objectce=$false) {
+	        Write-Output "$(Get-Date)   Variable ForEach-ObjectCE_CLOSE_PROCESSES is set to '$ForEach-Objectce'. Checking ForEach-Object running processes beForEach-Objecte execution." | Out-File -FilePath $Log -Append
+	        Write-Verbose "$(Get-Date)   Variable ForEach-ObjectCE_CLOSE_PROCESSES is set to '$ForEach-Objectce'. Checking ForEach-Object running processes beForEach-Objecte execution."
 
 
 	        #Search and report if processes of the list are running and exit if any are running
-	        for-each ($killlist) {
-		        Write-Output "$(Get-Date)   Searching for $_.exe..."
+	        ForEach-Object-each ($killlist) {
+		        Write-Output "$(Get-Date)   Searching ForEach-Object $_.exe..."
 		        if(Get-Process $_){
 				        Write-Output "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting." | Out-File -FilePath $Log -Append
 				        Write-Error "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting."
-				        exit $force_exitcode
+				        exit $ForEach-Objectce_exitcode
 			        }
 		        }
 	        }
@@ -110,7 +110,7 @@ function Kill-Java
 
 
         ########
-        #UNINSTALLER SECTION #-- Basically here we just brute-force every "normal" method for
+        #UNINSTALLER SECTION #-- Basically here we just brute-ForEach-Objectce every "normal" method ForEach-Object
         ########   removing Java, and then resort to more painstaking methods later
         Write-Output "$(Get-Date)   Targeting individual JRE versions..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   Targeting individual JRE versions..."
@@ -118,7 +118,7 @@ function Kill-Java
 
         #Okay, so all JRE runtimes (series 4-7) use product GUIDs, with certain numbers that increment with each new update (e.g. Update 25)
         #This makes it easy to catch ALL of them through liberal use of WMI wildcards ("_" is single character, "%" is any number of characters)
-        #Additionally, JRE 6 introduced 64-bit runtimes, so in addition to the two-digit Update XX revision number, we also check for the architecture 
+        #Additionally, JRE 6 introduced 64-bit runtimes, so in addition to the two-digit Update XX revision number, we also check ForEach-Object the architecture 
         #type, which always equals '32' or '64'. The first wildcard is the architecture, the second is the revision/update number.
 
         #JRE 7
@@ -129,8 +129,8 @@ function Kill-Java
         #JRE 6
         Write-Output "$(Get-Date)   JRE 6..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   JRE 6..."
-        #1st line is for updates 23-xx, after 64-bit runtimes were introduced.
-        #2nd line is for updates 1-22, before Oracle released 64-bit JRE 6 runtimes
+        #1st line is ForEach-Object updates 23-xx, after 64-bit runtimes were introduced.
+        #2nd line is ForEach-Object updates 1-22, beForEach-Objecte Oracle released 64-bit JRE 6 runtimes
         $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__160__FF}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
         $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0160__0}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
 
@@ -149,7 +149,7 @@ function Kill-Java
         Write-Verbose "$(Get-Date)   JRE 3 (AKA Java 2 Runtime v1.3.xx)..."
         #This version is so old we have to resort to different methods of removing it
         #Loop through each sub-version
-        Fore-Each("01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25".Split(",")) {
+        ForEach-Objecte-Each("01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25".Split(",")) {
 	        Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'$env:ProgramFiles\JavaSoft\JRE\1.3.1_$_\Uninst.isu' -a"
 	        Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'${env:ProgramFiles(x86)}\JavaSoft\JRE\1.3.1_$_\Uninst.isu' -a"
         }
@@ -177,10 +177,10 @@ function Kill-Java
 
             Write-Output "$(Get-Date)   Commencing registry cleanup..." | Out-File -FilePath $Log -Append
             Write-Output "$(Get-Date)   Commencing registry cleanup..."
-            Write-Output "$(Get-Date)   Searching for residual registry keys..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Searching for residual registry keys..."
+            Write-Output "$(Get-Date)   Searching ForEach-Object residual registry keys..." | Out-File -FilePath $Log -Append
+            Write-Output "$(Get-Date)   Searching ForEach-Object residual registry keys..."
 
-            #Search MSIExec installer class hive for keys
+            #Search MSIExec installer class hive ForEach-Object keys
             Write-Output "$(Get-Date)   Looking in HKLM\software\classes\installer\products..." | Out-File -FilePath $Log -Append
             Write-Output "$(Get-Date)   Looking in HKLM\software\classes\installer\products..."
             reg query HKLM\software\classes\installer\products /f "J2SE Runtime" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
@@ -209,8 +209,8 @@ function Kill-Java
             Write-Output "$(Get-Date)   Found these keys..."
             Write-Output "" | Out-File -FilePath $Log -Append
             Write-Output ""
-            type "$env:TEMP\java_purge_registry_keys.txt" | Out-File -FilePath $Log -Append
-            type "$env:TEMP\java_purge_registry_keys.txt"
+            Get-Content "$env:TEMP\java_purge_registry_keys.txt" | Out-File -FilePath $Log -Append
+            Get-Content "$env:TEMP\java_purge_registry_keys.txt"
             Write-Output "" | Out-File -FilePath $Log -Append
             Write-Output ""
 
@@ -218,10 +218,10 @@ function Kill-Java
             #We do this mainly because we're using wildcards, so we want a method to roll back if we accidentally nuke the wrong thing
             Write-Output "$(Get-Date)   Backing up keys..." | Out-File -FilePath $Log -Append
             Write-Output "$(Get-Date)   Backing up keys..."
-            if ("$env:TEMP\java_purge_registry_backup"){ rmdir /s /q "$env:TEMP\java_purge_registry_backup"}
+            if("$env:TEMP\java_purge_registry_backup"){ Remove-Item -ForEach-Objectce "$env:TEMP\java_purge_registry_backup"}
             mkdir "$env:TEMP\java_purge_registry_backup"
             #This line walks through the file we generated and dumps each key to a file
-            for( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt") {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
+            ForEach-Object( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt") {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
 
             Write-Output ""
             Write-Output "$(Get-Date)   Keys backed up to $env:TEMP\java_purge_registry_backup\ " | Out-File -FilePath $Log -Append
@@ -234,13 +234,13 @@ function Kill-Java
             Write-Output "$(Get-Date)   Purging keys..."
             Write-Output ""
             #This line walks through the file we generated and deletes each key listed
-            for( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt"){reg delete $_ /va /f  | Out-File -FilePath $Log -Append}
+            ForEach-Object( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt"){reg delete $_ /va /f  | Out-File -FilePath $Log -Append}
 
             #These lines delete some specific Java locations
             #These keys AREN'T backed up because these are specific, known Java keys, whereas above we were nuking
             #keys based on wildcards, so those need backups in case we nuke something we didn't want to.
 
-            #Delete keys for 32-bit Java installations on a 64-bit copy of Windows
+            #Delete keys ForEach-Object 32-bit Java installations on a 64-bit copy of Windows
             reg delete "HKLM\SOFTWARE\Wow6432Node\JavaSoft\Auto Update" /va /f | Out-File -FilePath $Log -Append
             reg delete "HKLM\SOFTWARE\Wow6432Node\JavaSoft\Java Plug-in" /va /f | Out-File -FilePath $Log -Append
             reg delete "HKLM\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" /va /f | Out-File -FilePath $Log -Append
@@ -248,7 +248,7 @@ function Kill-Java
             reg delete "HKLM\SOFTWARE\Wow6432Node\JavaSoft\Java Web Start" /va /f | Out-File -FilePath $Log -Append
             reg delete "HKLM\SOFTWARE\Wow6432Node\JreMetrics" /va /f | Out-File -FilePath $Log -Append
 
-            #Delete keys for for 32-bit and 64-bit Java installations on matching Windows architecture
+            #Delete keys ForEach-Object ForEach-Object 32-bit and 64-bit Java installations on matching Windows architecture
             reg delete "HKLM\SOFTWARE\JavaSoft\Auto Update" /va /f | Out-File -FilePath $Log -Append
             reg delete "HKLM\SOFTWARE\JavaSoft\Java Plug-in" /va /f | Out-File -FilePath $Log -Append
             reg delete "HKLM\SOFTWARE\JavaSoft\Java Runtime Environment" /va /f | Out-File -FilePath $Log -Append
@@ -315,17 +315,17 @@ function Kill-Java
         if("${env:ProgramFiles(x86)}"){
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." | Out-File -FilePath $Log -Append
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
-	        for( /D /R "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){rmdir /S /Q "$_" | Out-File -FilePath $Log -Append}}
-	        for( /D /R "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){rmdir /S /Q "$_" | Out-File -FilePath $Log -Append}}
-	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ rmdir /S /Q "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
+	        ForEach-ObjectEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append}}
+	        ForEach-ObjectEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append}}
+	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -ForEach-Objectce "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
         }
 
         #Nuke 64-bit Java installation directories
         Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..." | Out-File -FilePath $Log -Append
         Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..."
-        for /D /R "$env:ProgramFiles\Java\" $_ in (j2re*) do if exist "$_" rmdir /S /Q "$_" | Out-File -FilePath $Log -Append
-        for /D /R "$env:ProgramFiles\Java\" $_ in (jre*) do if exist "$_" rmdir /S /Q "$_" | Out-File -FilePath $Log -Append
-        if exist "$env:ProgramFiles\JavaSoft\JRE" rmdir /S /Q "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append
+        ForEach-ObjectEach-Object( "$env:ProgramFiles\Java\" $_ in (j2re*) do if exist "$_" Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append
+        ForEach-ObjectEach-Object( "$env:ProgramFiles\Java\" $_ in (jre*) do if exist "$_" Remove-Item -ForEach-Objectce "$_" | Out-File -FilePath $Log -Append
+        if exist "$env:ProgramFiles\JavaSoft\JRE" Remove-Item -ForEach-Objectce "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append
 
         #Nuke Java installer cache ( thanks to cannibalkitteh )
         Write-Output "$(Get-Date)   Purging Java installer cache..." | Out-File -FilePath $Log -Append
@@ -334,22 +334,22 @@ function Kill-Java
         if ($isXP=$true) {
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             dir "$env:SystemDrive\Documents and Settings\" /B > $env:TEMP\userlist.txt
-            for($_ in (Get-Content "$env:TEMP\userlist.txt") ){
-		        if exist "$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU" rmdir /S /Q "$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"
+            ForEach-ObjectEach-Object(Get-Content "$env:TEMP\userlist.txt"){
+		        if("$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"){Remove-Item -ForEach-Objectce "$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"}
 	        }
-            for /D /R "$env:SystemDrive\Documents and Settings\" $_ in (jre*) do if exist "$_" rmdir /S /Q "$_"
+            ForEach-ObjectEach-Object( "$env:SystemDrive\Documents and Settings\" $_ in (jre*) do if exist "$_" {Remove-Item -ForEach-Objectce "$_"}
         } else {
 	        #ALL OTHER VERSIONS OF WINDOWS
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             dir $env:SystemDrive\Users /B > $env:TEMP\userlist.txt
-            for( $_ in (Get-Content "$env:TEMP\userlist.txt")) { rmdir /S /Q "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
+            ForEach-ObjectEach-Object( $_ in (Get-Content "$env:TEMP\userlist.txt")) { Remove-Item -ForEach-Objectce "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
             #Get the other JRE directories
-            for( /D /R "$env:SystemDrive\Users" $_ in (jre*) ){rmdir /S /Q "$_"}
+            ForEach-ObjectEach-Object( "$env:SystemDrive\Users" $_ in (jre*) ){Remove-Item -ForEach-Objectce "$_"}
         }
 
         #Miscellaneous stuff, sometimes left over by the installers
-        Write-Output "$(Get-Date)   Searching for and purging other Java Runtime-related directories..." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   Searching for and purging other Java Runtime-related directories..."
+        Write-Output "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..." | Out-File -FilePath $Log -Append
+        Write-Output "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..."
         del /F /Q "$env:SystemDrive\1033.mst " | Out-File -FilePath $Log -Append
         del /F /S /Q "$env:SystemDrive\J2SE Runtime Environment*" | Out-File -FilePath $Log -Append
         Write-Output ""
@@ -402,7 +402,6 @@ function Kill-Java
     }
 }
 
-
 function Start-Proc{
 Param
     (
@@ -413,6 +412,6 @@ Param
         [Parameter(Mandatory=$true)]
         [string]$args
     )
-    $proc = [System.Diagnostics.Process]::Start($program,$args).WaitForExit()
+    $proc = [System.Diagnostics.Process]::Start($program,$args).WaitForEach-ObjectExit()
     return $proc
 }
