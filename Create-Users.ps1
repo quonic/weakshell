@@ -10,8 +10,6 @@ Import-Module ActiveDirectory
 .EXAMPLE
    .\Create-Users.ps1 C:\New-Users\MyListOfNewUSers.xlsx
 #>
-[CmdletBinding()]
-[OutputType([int])]
 Param
 (
     # File to import new user from
