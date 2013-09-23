@@ -21,8 +21,28 @@ Param
 Begin
 {
     # Setup Exchange Connection
-    . 'C:\Program Files\Microsoft\Exchange Server\V14\bin\RemoteExchange.ps1'
-    Connect-ExchangeServer -auto
+    $version = (Get-ADObject $("CN=ms-Exch-Schema-Version-Pt,"+$((Get-ADRootDSE).NamingContexts | Where-Object {$_ -like "*Schema*"})) -Property rangeUpper).rangeUpper
+    if(($version -eq 14726) -or ($version -le 14622) -or ($version -eq 15137)){
+        # Upgrade to latest Service Pack for your Exchange verison, does not support Exchange 2003 or below.
+        Write-Error "Incorrect Exchange Version: $version"
+        Write-Output "Exitting"
+    }
+    elseif($version -eq 14625){
+        # Running Exchange 2007
+        Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin
+        cd "c:\program files\microsoft\exchange server\bin"
+        . ".\Exchange.ps1"
+    }
+    elseif($version -eq 14732){
+        # Running Exchange 2010
+        . 'C:\Program Files\Microsoft\Exchange Server\V14\bin\RemoteExchange.ps1'
+        Connect-ExchangeServer -auto
+    }
+    elseif($version -eq 15254){
+        # Running Exchange 2013
+        . 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'
+        Connect-ExchangeServer -auto
+    }
     
     # Check if the input file exists, if not exit
     if( -not (Test-Path -path $File)){
