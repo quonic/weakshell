@@ -30,7 +30,7 @@ function Get-ComputerInfo
     Process
     {
         $Target | ForEach-Object{
-            $User = (Gwmi Win32_Computersystem -Comp "D020").UserName
+            $User = (Gwmi Win32_Computersystem -Comp $_).UserName
             $IP = [System.Net.Dns]::GetHostAddresses($_).IPAddressToString
             $BootUpTime = ([System.Management.ManagementDateTimeconverter]::ToDateTime((Get-WmiObject -Class Win32_OperatingSystem -computername $_).LastBootUpTime))
             Add-Member -InputObject $Data -Type NoteProperty -Name "Computer" -Value $_
