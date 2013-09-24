@@ -5,9 +5,11 @@
    This will stop a list of services based on the inputed csv file.
    Check end of script for more info of what is required.
 .EXAMPLE
-   Example of how to use this cmdlet
+   Stop-MyServices -File .\mylist.csv
 .EXAMPLE
-   Another example of how to use this cmdlet
+   Stop-MyServices -File .\mylist.csv -Time 20
+.EXAMPLE
+   Stop-MyServices .\mylist.csv 20
 #>
 function Stop-MyServices
 {
