@@ -30,14 +30,15 @@ function Get-ComputerInfo
     Process
     {
         $Target | ForEach-Object{
-            $User = (Gwmi Win32_Computersystem -Comp $_).UserName
-            $IP = [System.Net.Dns]::GetHostAddresses($_).IPAddressToString
-            $BootUpTime = ([System.Management.ManagementDateTimeconverter]::ToDateTime((Get-WmiObject -Class Win32_OperatingSystem -computername $_).LastBootUpTime))
-            Add-Member -InputObject $Data -Type NoteProperty -Name "Computer" -Value $_
-            Add-Member -InputObject $Data -Type NoteProperty -Name "Current User" -Value $User
-            Add-Member -InputObject $Data -Type NoteProperty -Name "IP Address" -Value $IP
-            Add-Member -InputObject $Data -Type NoteProperty -Name "Boot Up Time" -Value $BootUpTime
-            
+            if(Test-Path "\\$_\admin$\win.ini"){
+                $User = (Gwmi Win32_Computersystem -Comp $_).UserName
+                $IP = [System.Net.Dns]::GetHostAddresses($_).IPAddressToString
+                $BootUpTime = ([System.Management.ManagementDateTimeconverter]::ToDateTime((Get-WmiObject -Class Win32_OperatingSystem -computername $_).LastBootUpTime))
+                Add-Member -InputObject $Data -Type NoteProperty -Name "Computer" -Value $_
+                Add-Member -InputObject $Data -Type NoteProperty -Name "Current User" -Value $User
+                Add-Member -InputObject $Data -Type NoteProperty -Name "IP Address" -Value $IP
+                Add-Member -InputObject $Data -Type NoteProperty -Name "Boot Up Time" -Value $BootUpTime
+            }
         }
     }
     End
