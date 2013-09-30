@@ -176,13 +176,13 @@ function Kill-Java
 	        
 
             Write-Output "$(Get-Date)   Commencing registry cleanup..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Commencing registry cleanup..."
+            Write-Verbose "$(Get-Date)   Commencing registry cleanup..."
             Write-Output "$(Get-Date)   Searching ForEach-Object residual registry keys..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Searching ForEach-Object residual registry keys..."
+            Write-Verbose "$(Get-Date)   Searching ForEach-Object residual registry keys..."
 
             #Search MSIExec installer class hive ForEach-Object keys
             Write-Output "$(Get-Date)   Looking in HKLM\software\classes\installer\products..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Looking in HKLM\software\classes\installer\products..."
+            Write-Verbose "$(Get-Date)   Looking in HKLM\software\classes\installer\products..."
             reg query HKLM\software\classes\installer\products /f "J2SE Runtime" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
             reg query HKLM\software\classes\installer\products /f "Java(TM) 6 Update" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
             reg query HKLM\software\classes\installer\products /f "Java 7" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
@@ -190,7 +190,7 @@ function Kill-Java
 
             #Search the Add/Remove programs list (this helps with broken Java installations)
             Write-Output "$(Get-Date)   Looking in HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Looking in HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall..."
+            Write-Verbose "$(Get-Date)   Looking in HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall..."
             reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall /f "J2SE Runtime" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
             reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall /f "Java(TM) 6 Update" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
             reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall /f "Java 7" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
@@ -198,7 +198,7 @@ function Kill-Java
 
             #Search the Add/Remove programs list, x86/Wow64 node (this helps with broken Java installations)
             Write-Output "$(Get-Date)   Looking in HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Looking in HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall..."
+            Write-Verbose "$(Get-Date)   Looking in HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall..."
             reg query HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall /f "J2SE Runtime" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
             reg query HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall /f "Java(TM) 6 Update" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
             reg query HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall /f "Java 7" /s | find "HKEY_LOCAL_MACHINE" >> $env:TEMP\java_purge_registry_keys.txt
@@ -206,33 +206,31 @@ function Kill-Java
 
             #List the leftover registry keys
             Write-Output "$(Get-Date)   Found these keys..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Found these keys..."
+            Write-Verbose "$(Get-Date)   Found these keys..."
             Write-Output "" | Out-File -FilePath $Log -Append
-            Write-Output ""
+            Write-Verbose ""
             Get-Content "$env:TEMP\java_purge_registry_keys.txt" | Out-File -FilePath $Log -Append
-            Get-Content "$env:TEMP\java_purge_registry_keys.txt"
+            Write-Verbose (Get-Content "$env:TEMP\java_purge_registry_keys.txt").ToString()
             Write-Output "" | Out-File -FilePath $Log -Append
-            Write-Output ""
 
             #Backup the various registry keys that will get deleted (if they exist)
             #We do this mainly because we're using wildcards, so we want a method to roll back if we accidentally nuke the wrong thing
             Write-Output "$(Get-Date)   Backing up keys..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Backing up keys..."
+            Write-Verbose "$(Get-Date)   Backing up keys..."
             if("$env:TEMP\java_purge_registry_backup"){ Remove-Item -force "$env:TEMP\java_purge_registry_backup"}
             mkdir "$env:TEMP\java_purge_registry_backup"
             #This line walks through the file we generated and dumps each key to a file
             ForEach-Object("$env:TEMP\java_purge_registry_keys.txt".Split('["\n\r"|"\r\n"|\n|\r]')) {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
 
-            Write-Output ""
             Write-Output "$(Get-Date)   Keys backed up to $env:TEMP\java_purge_registry_backup\ " | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Keys backed up to $env:TEMP\java_purge_registry_backup\"
+            Write-Verbose "$(Get-Date)   Keys backed up to $env:TEMP\java_purge_registry_backup\"
             Write-Output "$(Get-Date)   This directory will be deleted at next reboot, so get it now if you need it! " | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   This directory will be deleted at next reboot, so get it now if you need it!"
+            Write-Verbose "$(Get-Date)   This directory will be deleted at next reboot, so get it now if you need it!"
 
             #Purge the keys
             Write-Output "$(Get-Date)   Purging keys..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Purging keys..."
-            Write-Output ""
+            Write-Verbose "$(Get-Date)   Purging keys..."
+
             #This line walks through the file we generated and deletes each key listed
             ForEach-Object("$env:TEMP\java_purge_registry_keys.txt".Split('["\n\r"|"\r\n"|\n|\r]')){reg delete $_ /va /f  | Out-File -FilePath $Log -Append}
 
@@ -256,37 +254,35 @@ function Kill-Java
             reg delete "HKLM\SOFTWARE\JavaSoft\Java Web Start" /va /f | Out-File -FilePath $Log -Append
             reg delete "HKLM\SOFTWARE\JreMetrics" /va /f | Out-File -FilePath $Log -Append
 
-            Write-Output ""
             Write-Output "$(Get-Date)   Keys purged." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Keys purged."
+            Write-Verbose "$(Get-Date)   Keys purged."
             Write-Output "$(Get-Date)   Registry cleanup done." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date)   Registry cleanup done."
-            Write-Output ""
+            Write-Verbose "$(Get-Date)   Registry cleanup done."
+
         }else{
             # We are XP so te above was skipped
             Write-Output "$(Get-Date) ! Registry cleanup doesn't work on Windows XP. Skipping..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date) ! Registry cleanup doesn't work on Windows XP. Skipping..."
+            Write-Verbose "$(Get-Date) ! Registry cleanup doesn't work on Windows XP. Skipping..."
         }
         ##########::
         #FILE AND DIRECTORY CLEANUP ::
         ##########::
         #:file_cleanup ---------------------------------
         Write-Output "$(Get-Date)   Commencing file and directory cleanup..." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   Commencing file and directory cleanup..."
+        Write-Verbose "$(Get-Date)   Commencing file and directory cleanup..."
 
         #Kill accursed Java tasks in Task Scheduler
         Write-Output "$(Get-Date)   Removing Java tasks from the Windows Task Scheduler..." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   Removing Java tasks from the Windows Task Scheduler..."
+        Write-Verbose "$(Get-Date)   Removing Java tasks from the Windows Task Scheduler..."
         if("$env:windir\tasks\Java*.job"){ Remove-Item -Force $env:windir\tasks\Java*.job | Out-File -FilePath $Log -Append}
         if("$env:windir\System32\tasks\Java*.job"){Remove-Item -Force $env:windir\System32\tasks\Java*.job | Out-File -FilePath $Log -Append}
         if("$env:windir\SysWOW64\tasks\Java*.job"){Remove-Item -Force $env:windir\SysWOW64\tasks\Java*.job | Out-File -FilePath $Log -Append}
-        Write-Output ""
 
         #Kill the accursed Java Quickstarter service
         sc query JavaQuickStarterService >NUL
         if( not %ERRORLEVEL%==1060){
 	        Write-Output "$(Get-Date)   De-registering and removing Java Quickstarter service..." | Out-File -FilePath $Log -Append
-	        Write-Output "$(Get-Date)   De-registering and removing Java Quickstarter service..."
+	        Write-Verbose "$(Get-Date)   De-registering and removing Java Quickstarter service..."
 	        net stop JavaQuickStarterService | Out-File -FilePath $Log -Append
 	        sc delete JavaQuickStarterService | Out-File -FilePath $Log -Append
         }
@@ -295,7 +291,7 @@ function Kill-Java
         sc query jusched >NUL
         if( not %ERRORLEVEL%==1060) {
 	        Write-Output "$(Get-Date)   De-registering and removing Java Update Scheduler service..." | Out-File -FilePath $Log -Append
-	        Write-Output "$(Get-Date)   De-registering and removing Java Update Scheduler service..."
+	        Write-Verbose "$(Get-Date)   De-registering and removing Java Update Scheduler service..."
 	        net stop jusched | Out-File -FilePath $Log -Append
 	        sc delete jusched | Out-File -FilePath $Log -Append
         }
@@ -314,7 +310,7 @@ function Kill-Java
         #Nuke 32-bit Java installation directories
         if("${env:ProgramFiles(x86)}"){
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." | Out-File -FilePath $Log -Append
-	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
+	        Write-Verbose "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
 	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
 	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
 	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -force "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
@@ -322,14 +318,14 @@ function Kill-Java
 
         #Nuke 64-bit Java installation directories
         Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..."
+        Write-Verbose "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..."
         ForEach-Object( "$env:ProgramFiles\Java\" $_ in (j2re*) do if exist "$_" Remove-Item -force "$_" | Out-File -FilePath $Log -Append
         ForEach-Object( "$env:ProgramFiles\Java\" $_ in (jre*) do if exist "$_" Remove-Item -force "$_" | Out-File -FilePath $Log -Append
-        if exist "$env:ProgramFiles\JavaSoft\JRE" Remove-Item -force "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append
+        if("$env:ProgramFiles\JavaSoft\JRE"){ Remove-Item -force "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
 
         #Nuke Java installer cache ( thanks to cannibalkitteh )
         Write-Output "$(Get-Date)   Purging Java installer cache..." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   Purging Java installer cache..."
+        Write-Verbose "$(Get-Date)   Purging Java installer cache..."
         #XP VERSION
         if ($isXP=$true) {
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
@@ -349,15 +345,13 @@ function Kill-Java
 
         #Miscellaneous stuff, sometimes left over by the installers
         Write-Output "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..."
+        Write-Verbose "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..."
         del /F /Q "$env:SystemDrive\1033.mst " | Out-File -FilePath $Log -Append
         del /F /S /Q "$env:SystemDrive\J2SE Runtime Environment*" | Out-File -FilePath $Log -Append
         Write-Output ""
 
         Write-Output "$(Get-Date)   File and directory cleanup done." | Out-File -FilePath $Log -Append
-        Write-Output "$(Get-Date)   File and directory cleanup done."
-        Write-Output "" | Out-File -FilePath $Log -Append
-        Write-Output ""
+        Write-Verbose "$(Get-Date)   File and directory cleanup done."
 
 
         ########:
@@ -366,7 +360,7 @@ function Kill-Java
         #x64
         if($Reinstall=$true) {
             Write-Output "$(Get-Date) ! Variable REINSTALL_JAVA_x64 was set to 'yes'. Now installing %JAVA_BINARY_x64%..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date) ! Variable REINSTALL_JAVA_x64 was set to 'yes'. Now installing %JAVA_BINARY_x64%..."
+            Write-Verbose "$(Get-Date) ! Variable REINSTALL_JAVA_x64 was set to 'yes'. Now installing %JAVA_BINARY_x64%..."
             "%JAVA_LOCATION_x64%\%JAVA_BINARY_x64%" %JAVA_ARGUMENTS_x64%
             java -version
             Write-Output "Done." | Out-File -FilePath $Log -Append
@@ -375,7 +369,7 @@ function Kill-Java
         #x86
         if($Reinstall=$true) {
             Write-Output "$(Get-Date) ! Variable REINSTALL_JAVA_x86 was set to 'yes'. Now installing %JAVA_BINARY_x86%..." | Out-File -FilePath $Log -Append
-            Write-Output "$(Get-Date) ! Variable REINSTALL_JAVA_x86 was set to 'yes'. Now installing %JAVA_BINARY_x86%..."
+            Write-Verbose "$(Get-Date) ! Variable REINSTALL_JAVA_x86 was set to 'yes'. Now installing %JAVA_BINARY_x86%..."
             "%JAVA_LOCATION_x86%\%JAVA_BINARY_x86%" %JAVA_ARGUMENTS_x86%
             java -version
             Write-Output "Done." | Out-File -FilePath $Log -Append
