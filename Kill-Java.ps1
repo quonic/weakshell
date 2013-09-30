@@ -69,8 +69,8 @@ function Kill-Java
             Write-Warning "$(Get-Date) WMI appears to be broken. It should still work. Please use WMIDiag.vbs" 
         }
 
-        
-        cscript.exe $WMIdiagBin LogFilePath=$env:TEMP
+        # I don't think this is needed any more
+        # cscript.exe $WMIdiagBin LogFilePath=$env:TEMP
         $killlist="java,javaw,javaws,jqs,jusched,iexplore,iexplorer,firefox,chrome,palemoon".Split(",")
         #########
         #force-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
@@ -149,7 +149,7 @@ function Kill-Java
         Write-Verbose "$(Get-Date)   JRE 3 (AKA Java 2 Runtime v1.3.xx)..."
         #This version is so old we have to resort to different methods of removing it
         #Loop through each sub-version
-        Each-Object("01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25".Split(",")) {
+        "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25".Split(",") | ForEach-Object {
 	        Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'$env:ProgramFiles\JavaSoft\JRE\1.3.1_$_\Uninst.isu' -a"
 	        Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'${env:ProgramFiles(x86)}\JavaSoft\JRE\1.3.1_$_\Uninst.isu' -a"
         }
@@ -221,7 +221,7 @@ function Kill-Java
             if("$env:TEMP\java_purge_registry_backup"){ Remove-Item -force "$env:TEMP\java_purge_registry_backup"}
             mkdir "$env:TEMP\java_purge_registry_backup"
             #This line walks through the file we generated and dumps each key to a file
-            ForEach-Object( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt") {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
+            ForEach-Object("$env:TEMP\java_purge_registry_keys.txt".Split('["\n\r"|"\r\n"|\n|\r]')) {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
 
             Write-Output ""
             Write-Output "$(Get-Date)   Keys backed up to $env:TEMP\java_purge_registry_backup\ " | Out-File -FilePath $Log -Append
@@ -234,7 +234,7 @@ function Kill-Java
             Write-Output "$(Get-Date)   Purging keys..."
             Write-Output ""
             #This line walks through the file we generated and deletes each key listed
-            ForEach-Object( /f "tokens=* delims= " $_ in "$env:TEMP\java_purge_registry_keys.txt"){reg delete $_ /va /f  | Out-File -FilePath $Log -Append}
+            ForEach-Object("$env:TEMP\java_purge_registry_keys.txt".Split('["\n\r"|"\r\n"|\n|\r]')){reg delete $_ /va /f  | Out-File -FilePath $Log -Append}
 
             #These lines delete some specific Java locations
             #These keys AREN'T backed up because these are specific, known Java keys, whereas above we were nuking
@@ -277,9 +277,9 @@ function Kill-Java
         #Kill accursed Java tasks in Task Scheduler
         Write-Output "$(Get-Date)   Removing Java tasks from the Windows Task Scheduler..." | Out-File -FilePath $Log -Append
         Write-Output "$(Get-Date)   Removing Java tasks from the Windows Task Scheduler..."
-        if("$env:windir\tasks\Java*.job"){ del /F /Q $env:windir\tasks\Java*.job | Out-File -FilePath $Log -Append}
-        if("$env:windir\System32\tasks\Java*.job"){del /F /Q $env:windir\System32\tasks\Java*.job | Out-File -FilePath $Log -Append}
-        if("$env:windir\SysWOW64\tasks\Java*.job"){del /F /Q $env:windir\SysWOW64\tasks\Java*.job | Out-File -FilePath $Log -Append}
+        if("$env:windir\tasks\Java*.job"){ Remove-Item -Force $env:windir\tasks\Java*.job | Out-File -FilePath $Log -Append}
+        if("$env:windir\System32\tasks\Java*.job"){Remove-Item -Force $env:windir\System32\tasks\Java*.job | Out-File -FilePath $Log -Append}
+        if("$env:windir\SysWOW64\tasks\Java*.job"){Remove-Item -Force $env:windir\SysWOW64\tasks\Java*.job | Out-File -FilePath $Log -Append}
         Write-Output ""
 
         #Kill the accursed Java Quickstarter service
@@ -315,8 +315,8 @@ function Kill-Java
         if("${env:ProgramFiles(x86)}"){
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." | Out-File -FilePath $Log -Append
 	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
-	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -force "$_" | Out-File -FilePath $Log -Append}}
-	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -force "$_" | Out-File -FilePath $Log -Append}}
+	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
+	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
 	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -force "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
         }
 
