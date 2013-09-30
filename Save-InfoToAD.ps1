@@ -73,7 +73,7 @@ function Save-InfoToAD
                    ParameterSetName='LogFile')]
         [ValidateNotNull()]
         [ValidateNotNullOrEmpty()]
-        $LogFile = "C:\Scripts\Logs\$env:computername.log",
+        $LogFile = "C:\Scripts\Logs\$env:computername.txt",
 
         # Email to Address or Addresses seperated by ;'s
         [Parameter(Mandatory=$false,
@@ -95,6 +95,7 @@ function Save-InfoToAD
         $ecode = 0
         $sub = "AD Update Log" # Mail Subject
         $body = "See attached" # Mail Body
+        $from = "$credusername@$env:userdomain.com"
         
         # This is a great way to determin the SearchBase based on the User's DNS Domain, a.consto.com, b.a.consto.com, etc.
         $Domain = ""
@@ -153,11 +154,12 @@ function Save-InfoToAD
         # Send email if told to
         if($EmailAddress){
             #check if we have creds and send email
+            $body = $body + "`r`n" + ((Get-Content $LogFile) -split '["\n\r"|"\r\n"|\n|\r]')
             if($Credential){
                 $credusername = $Credential.UserName
-                Send-MailMessage -To $EmailAddress -From "$credusername@$env:userdomain.com" -Attachments $LogFile -Body $body -SmtpServer $EmailServer -Subject $sub -Credential $Credential
+                Send-MailMessage -To $EmailAddress -From $from -Attachments $LogFile -Body $body -SmtpServer $EmailServer -Subject $sub -Credential $Credential
             }else{
-                Send-MailMessage -To $EmailAddress -From "$env:username@$env:userdomain.com" -Attachments $LogFile -Body $body -SmtpServer $EmailServer -Subject $sub
+                Send-MailMessage -To $EmailAddress -From $from -Attachments $LogFile -Body $body -SmtpServer $EmailServer -Subject $sub
             }
         }
 
@@ -257,7 +259,6 @@ if($Host.Name -eq "Windows PowerShell ISE Host")
     #In ISE or Running from console
     # Do nothing
     Write-Host "Run me Save-InfoToAD"
-    exit 1067
 }else
 {
     #We are being run in a script use defaults
