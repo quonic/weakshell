@@ -13,10 +13,6 @@ function Kill-Java
     [CmdletBinding()]
     Param
     (
-        # Param1 help description
-        [Parameter(Mandatory=$true)]
-        $Param1,
-
         # Log defaults to "$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log"
         $Log="$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log",
 
@@ -30,18 +26,13 @@ function Kill-Java
         $JavaBin=".\java-x64.exe",
 
         #Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
-        $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn",
-
-        #WMIDiag.vbs script location, found here http://www.microsoft.com/en-us/download/details.aspx?id=7684
-        $WMIdiagBin="c:\Scripts\WMIDiag\WMIDiag.vbs"
+        $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
     )
 
     Begin
     {
         $force_exitcode="1618"
-        $Version="1.5.0"
-        $Updated="2013-07-23"
-        $Title="Java Runtime Nuker v$Version ($Updated)"
+        $Title="Java Runtime Nuker"
         $arch=$env:PROCESSOR_ARCHITECTURE
         $isXP=$false
         if((Get-WmiObject -class Win32_OperatingSystem).Caption -match "XP"){
@@ -53,7 +44,6 @@ function Kill-Java
 
         Write-Verbose ""
         Write-Verbose " JAVA RUNTIME NUKER"
-        Write-Verbose " v$Version, updated $Updated"
         if($isXP=$true){Write-Verbose ""; Write-Verbose " ! Windows XP detected, using alternate command set to compensate."}
         Write-Verbose ""
         Write-Output "$(Get-Date)   Beginning removal of Java Runtime Environments (series 3-7, x86 and x64) and JavaFX..." | Out-File -FilePath $Log -Append
@@ -65,8 +55,8 @@ function Kill-Java
             Write-Output "$(Get-Date) WMI appears to be working." | Out-File -FilePath $Log -Append
             Write-Verbose "$(Get-Date) WMI appears to be working." 
         }else{
-            Write-Output "$(Get-Date) WMI appears to be broken. It should still work. Please use WMIDiag.vbs" | Out-File -FilePath $Log -Append
-            Write-Warning "$(Get-Date) WMI appears to be broken. It should still work. Please use WMIDiag.vbs" 
+            Write-Output "$(Get-Date) WMI appears to be broken. It should still work. Please use WMIDiag.vbs to help diagnose. http://www.microsoft.com/en-us/download/details.aspx?id=7684" | Out-File -FilePath $Log -Append
+            Write-Warning "$(Get-Date) WMI appears to be broken. It should still work. Please use WMIDiag.vbs to help diagnose. http://www.microsoft.com/en-us/download/details.aspx?id=7684" 
         }
 
         # I don't think this is needed any more
@@ -280,7 +270,7 @@ function Kill-Java
 
         #Kill the accursed Java Quickstarter service
         sc query JavaQuickStarterService >NUL
-        if( not %ERRORLEVEL%==1060){
+        if( -not ($? -eq 1060)){
 	        Write-Output "$(Get-Date)   De-registering and removing Java Quickstarter service..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   De-registering and removing Java Quickstarter service..."
 	        net stop JavaQuickStarterService | Out-File -FilePath $Log -Append
@@ -289,7 +279,7 @@ function Kill-Java
 
         #Kill the accursed Java Update Scheduler service
         sc query jusched >NUL
-        if( not %ERRORLEVEL%==1060) {
+        if( -not ($? -eq 1060)) {
 	        Write-Output "$(Get-Date)   De-registering and removing Java Update Scheduler service..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   De-registering and removing Java Update Scheduler service..."
 	        net stop jusched | Out-File -FilePath $Log -Append
@@ -308,19 +298,15 @@ function Kill-Java
         Start-Proc "msiexec.exe" "/x {4A03706F-666A-4037-7777-5F2748764D10} /qn /norestart"
 
         #Nuke 32-bit Java installation directories
-        if("${env:ProgramFiles(x86)}"){
-	        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." | Out-File -FilePath $Log -Append
-	        Write-Verbose "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
-	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (j2re*)){if("$_"){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
-	        ForEach-Object( "${env:ProgramFiles(x86)}\Java\" $_ in (jre*)){if($_){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
-	        if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -force "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
-        }
+        Write-Output "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." | Out-File -FilePath $Log -Append
+        Write-Verbose "$(Get-Date)   Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..."
+	    ForEach-Object(Get-ChildItem -Filter { -like "j2re" -or -like "jre" } "${env:ProgramFiles(x86)}\Java\"){if($_){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
+	    if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -force "${env:ProgramFiles(x86)}\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
 
         #Nuke 64-bit Java installation directories
         Write-Output "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   Removing "$env:ProgramFiles\Java\jre*" directories..."
-        ForEach-Object( "$env:ProgramFiles\Java\" $_ in (j2re*) do if exist "$_" Remove-Item -force "$_" | Out-File -FilePath $Log -Append
-        ForEach-Object( "$env:ProgramFiles\Java\" $_ in (jre*) do if exist "$_" Remove-Item -force "$_" | Out-File -FilePath $Log -Append
+        ForEach-Object(Get-ChildItem -Filter { -like "j2re" -or -like "jre" } "$env:ProgramFiles\Java\"){if($_){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
         if("$env:ProgramFiles\JavaSoft\JRE"){ Remove-Item -force "$env:ProgramFiles\JavaSoft\JRE" | Out-File -FilePath $Log -Append}
 
         #Nuke Java installer cache ( thanks to cannibalkitteh )
@@ -338,9 +324,9 @@ function Kill-Java
 	        #ALL OTHER VERSIONS OF WINDOWS
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             dir $env:SystemDrive\Users /B > $env:TEMP\userlist.txt
-            ForEach-Object( $_ in (Get-Content "$env:TEMP\userlist.txt")) { Remove-Item -force "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
+            ForEach-Object(Get-Content "$env:TEMP\userlist.txt") { Remove-Item -force "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
             #Get the other JRE directories
-            ForEach-Object( "$env:SystemDrive\Users" $_ in (jre*) ){Remove-Item -force "$_"}
+            ForEach-Object( Get-ChildItem -Filter { -like "jre"} "$env:SystemDrive\Users"){Remove-Item -force $_}
         }
 
         #Miscellaneous stuff, sometimes left over by the installers
