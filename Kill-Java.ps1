@@ -32,11 +32,20 @@ function Kill-Java
         [switch]
         $Reinstall,
 
-        # Java Install file and location, ForEach-Objectmated with x64.exe or x86.exe at the end. Have both in the same folder.
-        $JavaBin=".\java-x64.exe",
+        # Java x64 Install file and location
+        $Java64Bin=".\java-x64.exe",
 
-        #Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
-        $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
+        # Java x86 Install file and location
+        $Java86Bin=".\java-x86.exe",
+
+        # Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
+        $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn",
+        
+        # Java Args for x64, if this is null JavaArgs will be used.
+        $Java64Args,
+
+        # Java Args for x86, if this is null JavaArgs will be used.
+        $Java86Args
     )
 
     Begin
@@ -353,23 +362,33 @@ function Kill-Java
         ########:
         #JAVA REINSTALLATION #-- If we wanted to reinstall the JRE after cleanup, this is where it happens
         ########:
-        #x64
         if($Reinstall=$true) {
-            Write-Output "$(Get-Date) ! Variable REINSTALL_JAVA_x64 was set to 'yes'. Now installing %JAVA_BINARY_x64%..." | Out-File -FilePath $Log -Append
-            Write-Verbose "$(Get-Date) ! Variable REINSTALL_JAVA_x64 was set to 'yes'. Now installing %JAVA_BINARY_x64%..."
-            "%JAVA_LOCATION_x64%\%JAVA_BINARY_x64%" %JAVA_ARGUMENTS_x64%
-            java -version
-            Write-Output "Done." | Out-File -FilePath $Log -Append
-            }
+            if ([System.IntPtr]::Size -eq 4) {
+                "32-bit"
+                Write-Output "$(Get-Date) ! Now installing $Java86bin" | Out-File -FilePath $Log -Append
+                Write-Verbose "$(Get-Date) ! Now installing $Java86bin"
+                if($Java32Args -eq $null){
+                    Start-Proc $Java86Bin $JavaArgs
+                }else{
+                    Start-Proc $Java86Bin $Java86Args
+                }
+                java -version
+                Write-Output "Done." | Out-File -FilePath $Log -Append
+            } else {
+                "64-bit"
+                $Java64Bin
 
-        #x86
-        if($Reinstall=$true) {
-            Write-Output "$(Get-Date) ! Variable REINSTALL_JAVA_x86 was set to 'yes'. Now installing %JAVA_BINARY_x86%..." | Out-File -FilePath $Log -Append
-            Write-Verbose "$(Get-Date) ! Variable REINSTALL_JAVA_x86 was set to 'yes'. Now installing %JAVA_BINARY_x86%..."
-            "%JAVA_LOCATION_x86%\%JAVA_BINARY_x86%" %JAVA_ARGUMENTS_x86%
-            java -version
-            Write-Output "Done." | Out-File -FilePath $Log -Append
+                Write-Output "$(Get-Date) ! Now installing $Java64bin" | Out-File -FilePath $Log -Append
+                Write-Verbose "$(Get-Date) ! Now installing $Java64bin"
+                if($Java64Args -eq $null){
+                    Start-Proc $Java64Bin $JavaArgs
+                }else{
+                    Start-Proc $Java64Bin $Java64Args
+                }
+                java -version
+                Write-Output "Done." | Out-File -FilePath $Log -Append
             }
+        }
 
         #Done.
         Write-Output "$(Get-Date)   Registry hive backups: $env:TEMP\java_purge_registry_backup\" | Out-File -FilePath $Log -Append
