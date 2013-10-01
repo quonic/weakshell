@@ -1,12 +1,20 @@
 <#
 .Synopsis
-   Short description
+   Uninstall all versions of Java and remove nearly any trace that it was installed, for a clean install or just removal.
 .DESCRIPTION
-   Long description
+   This will remove all versions of Java and can also install you intended version of Java.
 .EXAMPLE
-   Example of how to use this cmdlet
+   Kill-Java
 .EXAMPLE
-   Another example of how to use this cmdlet
+   Kill-Java -Log "c:\Logs\Kill-Java.log"
+.EXAMPLE
+   Kill-Java -Log "c:\Logs\Kill-Java.log" -Force
+.EXAMPLE
+   Kill-Java -Log "c:\Logs\Kill-Java.log" -Force -Reinstall
+.EXAMPLE
+   Kill-Java -Force -Reinstall -JavaBin ".\Java-x64.exe"
+.EXAMPLE
+   Kill-Java -Force -Reinstall -JavaBin ".\Java-x64.exe" -JavaArgs "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
 #>
 function Kill-Java
 {
@@ -16,11 +24,13 @@ function Kill-Java
         # Log defaults to "$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log"
         $Log="$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log",
 
-        # force
-        $force=$true,
+        # Force close Applications running/using java
+        [switch]
+        $Force,
 
-        # Reinstall Java? crazy...
-        $Reinstall=$false,
+        # Reinstall Java? Are you crazy?!
+        [switch]
+        $Reinstall,
 
         # Java Install file and location, ForEach-Objectmated with x64.exe or x86.exe at the end. Have both in the same folder.
         $JavaBin=".\java-x64.exe",
@@ -31,7 +41,7 @@ function Kill-Java
 
     Begin
     {
-        $force_exitcode="1618"
+        $Force_exitcode="1618"
         $Title="Java Runtime Nuker"
         $arch=$env:PROCESSOR_ARCHITECTURE
         $isXP=$false
@@ -65,7 +75,7 @@ function Kill-Java
         #########
         #force-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
         #########
-        if ($force=$true) {
+        if ($Force=$true) {
 	        #Kill all browsers and running Java instances
 	        Write-Output "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..."
@@ -78,9 +88,9 @@ function Kill-Java
         }
 
         #If we DON'T want to force-close Java, then check ForEach-Object possible running Java processes and abort the script if we find any
-        if ($force=$false) {
-	        Write-Output "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$force'. Checking ForEach-Object running processes beForEach-Objecte execution." | Out-File -FilePath $Log -Append
-	        Write-Verbose "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$force'. Checking ForEach-Object running processes beForEach-Objecte execution."
+        if ($Force=$false) {
+	        Write-Output "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$Force'. Checking ForEach-Object running processes beForEach-Objecte execution." | Out-File -FilePath $Log -Append
+	        Write-Verbose "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$Force'. Checking ForEach-Object running processes beForEach-Objecte execution."
 
 
 	        #Search and report if processes of the list are running and exit if any are running
@@ -89,7 +99,7 @@ function Kill-Java
 		        if(Get-Process $_){
 				        Write-Output "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting." | Out-File -FilePath $Log -Append
 				        Write-Error "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting."
-				        exit $force_exitcode
+				        exit $Force_exitcode
 			        }
 		        }
 	        }
