@@ -216,11 +216,8 @@ function Kill-Java
             #List the leftover registry keys
             Write-Output "$(Get-Date)   Found these keys..." | Out-File -FilePath $Log -Append
             Write-Verbose "$(Get-Date)   Found these keys..."
-            Write-Output "" | Out-File -FilePath $Log -Append
-            Write-Verbose ""
             Get-Content "$env:TEMP\java_purge_registry_keys.txt" | Out-File -FilePath $Log -Append
             Write-Verbose (Get-Content "$env:TEMP\java_purge_registry_keys.txt").ToString()
-            Write-Output "" | Out-File -FilePath $Log -Append
 
             #Backup the various registry keys that will get deleted (if they exist)
             #We do this mainly because we're using wildcards, so we want a method to roll back if we accidentally nuke the wrong thing
@@ -338,14 +335,23 @@ function Kill-Java
             ForEach-Object(Get-Content "$env:TEMP\userlist.txt"){
 		        if("$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"){Remove-Item -force "$env:SystemDrive\Documents and Settings\$_\AppData\LocalLow\Sun\Java\AU"}
 	        }
-            ForEach-Object( "$env:SystemDrive\Documents and Settings\" $_ in (jre*) do if exist "$_" {Remove-Item -force "$_"}
+            ForEach-Object(Get-ChildItem -Filter { -like "j2re" -or -like "jre" } "${env:ProgramFiles(x86)}\Java\"){if($_){Remove-Item -Force "$_" | Out-File -FilePath $Log -Append}}
+            Get-ChildItem "$env:SystemDrive\Documents and Settings\" | ForEach-Object {
+                if(Get-ChildItem "$_\*jre*"){
+                    Remove-Item -force "$_"
+                }
+            }
         } else {
 	        #ALL OTHER VERSIONS OF WINDOWS
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             dir $env:SystemDrive\Users /B > $env:TEMP\userlist.txt
             ForEach-Object(Get-Content "$env:TEMP\userlist.txt") { Remove-Item -force "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
             #Get the other JRE directories
-            ForEach-Object( Get-ChildItem -Filter { -like "jre"} "$env:SystemDrive\Users"){Remove-Item -force $_}
+            Get-ChildItem "$env:SystemDrive\Users\" | ForEach-Object {
+                if(Get-ChildItem "$_\*jre*"){
+                    Remove-Item -force "$_"
+                }
+            }
         }
 
         #Miscellaneous stuff, sometimes left over by the installers
@@ -353,7 +359,7 @@ function Kill-Java
         Write-Verbose "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..."
         del /F /Q "$env:SystemDrive\1033.mst " | Out-File -FilePath $Log -Append
         del /F /S /Q "$env:SystemDrive\J2SE Runtime Environment*" | Out-File -FilePath $Log -Append
-        Write-Output ""
+        
 
         Write-Output "$(Get-Date)   File and directory cleanup done." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   File and directory cleanup done."
@@ -399,7 +405,7 @@ function Kill-Java
         Write-Output "$(Get-Date)   JAVA NUKER COMPLETE. Recommend rebooting and washing your hands."
 
         #Return exit code to SCCM/PDQ Deploy/PSexec/etc
-        exit %EXIT_CODE%
+        exit $Force_exitcode
 
         
     }
