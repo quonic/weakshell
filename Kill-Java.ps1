@@ -111,7 +111,7 @@ function Kill-Java
 				        exit $Force_exitcode
 			        }
 		        }
-	        }
+	        }else{
 	        #If we made it this far, we didn't find anything, so we can go ahead
 	        Write-Output "$(Get-Date)   All clear, no running processes found. Going ahead with removal..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   All clear, no running processes found. Going ahead with removal..."
