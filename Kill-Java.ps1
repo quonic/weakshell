@@ -412,7 +412,14 @@ function Kill-Java
         Write-Output "$(Get-Date)   JAVA NUKER COMPLETE. Recommend rebooting and washing your hands."
 
         #Return exit code to SCCM/PDQ Deploy/PSexec/etc
-        exit $Force_exitcode
+        if($Host.Name -eq "Windows PowerShell ISE Host")
+        {
+            #In ISE
+            # Do nothing
+        }else
+        {
+            exit $Force_exitcode
+        }
 
         
     }
