@@ -29,7 +29,8 @@ function Kill-Java
         $Force,
 
         # Reinstall Java? Are you crazy?!
-        $Reinstall=$false,
+        [switch]
+        $Reinstall,
 
         # Java x64 Install file and location
         $Java64Bin=".\java-x64.exe",
@@ -374,7 +375,7 @@ function Kill-Java
         ########:
         #JAVA REINSTALLATION #-- If we wanted to reinstall the JRE after cleanup, this is where it happens
         ########:
-        if($Reinstall=$true) {
+        if($Reinstall -eq $true) {
             if ([System.IntPtr]::Size -eq 4) {
                 "32-bit"
                 Write-Output "$(Get-Date) ! Now installing $Java86bin" | Out-File -FilePath $Log -Append
