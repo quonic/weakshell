@@ -29,8 +29,7 @@ function Kill-Java
         $Force,
 
         # Reinstall Java? Are you crazy?!
-        [switch]
-        $Reinstall,
+        $Reinstall=$false,
 
         # Java x64 Install file and location
         $Java64Bin=".\java-x64.exe",
