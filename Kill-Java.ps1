@@ -364,8 +364,8 @@ function Kill-Java
         #Miscellaneous stuff, sometimes left over by the installers
         Write-Output "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   Searching ForEach-Object and purging other Java Runtime-related directories..."
-        del /F /Q "$env:SystemDrive\1033.mst " | Out-File -FilePath $Log -Append
-        del /F /S /Q "$env:SystemDrive\J2SE Runtime Environment*" | Out-File -FilePath $Log -Append
+        Remove-Item -Force "$env:SystemDrive\1033.mst " | Out-File -FilePath $Log -Append
+        Remove-Item -Force -Recurse "$env:SystemDrive\J2SE Runtime Environment*" | Out-File -FilePath $Log -Append
         
 
         Write-Output "$(Get-Date)   File and directory cleanup done." | Out-File -FilePath $Log -Append
