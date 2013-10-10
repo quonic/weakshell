@@ -58,7 +58,7 @@ function Kill-Java
             $isXP=$true}
         # Clear log and create log dir if it's not there
         $mkdirs = $Log.Substring(0,$Log.Length - $Log.split('\')[$Log.split('\').Count - 1].Length)
-        mkdir $mkdirs -ErrorAction SilentlyContinue
+        New-Item -Path $mkdirs -ErrorAction SilentlyContinue
         Clear-Content $Log -ErrorAction SilentlyContinue
 
         Write-Verbose ""
@@ -84,7 +84,7 @@ function Kill-Java
         #########
         #force-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
         #########
-        if ($Force=$true) {
+        if ($Force) {
 	        #Kill all browsers and running Java instances
 	        Write-Output "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..."
@@ -95,10 +95,10 @@ function Kill-Java
 			    (Get-Process $_).Kill() | Out-File -FilePath $Log -Append
 		    }
 		    Write-Verbose ""
-        }
+        }else{
 
         #If we DON'T want to force-close Java, then check ForEach-Object possible running Java processes and abort the script if we find any
-        if ($Force=$false) {
+        
 	        Write-Output "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$Force'. Checking ForEach-Object running processes beForEach-Objecte execution." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   Variable force_CLOSE_PROCESSES is set to '$Force'. Checking ForEach-Object running processes beForEach-Objecte execution."
 
@@ -187,7 +187,7 @@ function Kill-Java
         #REGISTRY CLEANUP #-- This is where it gets hairy. Don't read ahead if you have a weak constitution.
         #######:
         # If not XP then Clean the Registry
-        if ($isXP=$false) {
+        if ($isXP -eq $false) {
 
 	        
 
@@ -231,7 +231,7 @@ function Kill-Java
             Write-Output "$(Get-Date)   Backing up keys..." | Out-File -FilePath $Log -Append
             Write-Verbose "$(Get-Date)   Backing up keys..."
             if("$env:TEMP\java_purge_registry_backup"){ Remove-Item -force "$env:TEMP\java_purge_registry_backup"}
-            mkdir "$env:TEMP\java_purge_registry_backup"
+            New-Item -Path  "$env:TEMP\java_purge_registry_backup"
             #This line walks through the file we generated and dumps each key to a file
             ForEach-Object("$env:TEMP\java_purge_registry_keys.txt".Split('["\n\r"|"\r\n"|\n|\r]')) {(reg query $_) >> $env:TEMP\java_purge_registry_backup\java_reg_keys_1.bak}
 
