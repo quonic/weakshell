@@ -89,7 +89,8 @@ function Kill-Java
 	        Write-Output "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..." | Out-File -FilePath $Log -Append
 	        Write-Verbose "$(Get-Date)   Looking ForEach-Object and closing all running browsers and Java instances..."
 		    Write-Verbose ""
-		    ForEach-Object-each ($killlist) {
+		    $killlist | ForEach-Object {
+                # ToDo do some checking id the process is running
 			    Write-Output "Searching ForEach-Object $_.exe..."
 			    (Get-Process $_).Kill() | Out-File -FilePath $Log -Append
 		    }
@@ -104,6 +105,7 @@ function Kill-Java
 
 	        #Search and report if processes of the list are running and exit if any are running
 	        ForEach-Object-each ($killlist) {
+                # ToDo do some checking id the process is running
 		        Write-Output "$(Get-Date)   Searching ForEach-Object $_.exe..."
 		        if(Get-Process $_){
 				        Write-Output "$(Get-Date) ! ERROR: Process '$_' is currently running, aborting." | Out-File -FilePath $Log -Append
@@ -133,25 +135,29 @@ function Kill-Java
         #JRE 7
         Write-Output "$(Get-Date)   JRE 7..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   JRE 7..."
-        $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__170__FF}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__170__FF}'").Uninstall() | Out-File -FilePath $Log -Append
+        # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
 
         #JRE 6
         Write-Output "$(Get-Date)   JRE 6..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   JRE 6..."
         #1st line is ForEach-Object updates 23-xx, after 64-bit runtimes were introduced.
         #2nd line is ForEach-Object updates 1-22, beForEach-Objecte Oracle released 64-bit JRE 6 runtimes
-        $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__160__FF}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
-        $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0160__0}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__160__FF}'").Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0160__0}'").Uninstall() | Out-File -FilePath $Log -Append
+        # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
 
         #JRE 5
         Write-Output "$(Get-Date)   JRE 5..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   JRE 5..."
-        $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0150__0}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0150__0}'").Uninstall() | Out-File -FilePath $Log -Append
+        # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
 
         #JRE 4
         Write-Output "$(Get-Date)   JRE 4..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   JRE 4..."
-        $t = (Get-WmiObject win32_product -filter "IdentifyingNumber like '{7148F0A8-6813-11D6-A77B-00B0D0142__0}'"); $t.Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "IdentifyingNumber like '{7148F0A8-6813-11D6-A77B-00B0D0142__0}'").Uninstall() | Out-File -FilePath $Log -Append
+        # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
 
         #JRE 3 (AKA "Java 2 Runtime Environment Standard Edition" v1.3.1_00-25)
         Write-Output "$(Get-Date)   JRE 3 (AKA Java 2 Runtime v1.3.xx)..." | Out-File -FilePath $Log -Append
@@ -169,9 +175,10 @@ function Kill-Java
         #Wildcard uninstallers
         Write-Output "$(Get-Date)   Specific targeting done. Now running WMIC wildcard catchall uninstallation..." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   Specific targeting done. Now running WMIC wildcard catchall uninstallation..."
-        $t = (Get-WmiObject win32_product -filter "name like '%%J2SE Runtime%%'"); $t.Uninstall() | Out-File -FilePath $Log -Append
-        $t = (Get-WmiObject win32_product -filter "name like 'Java%%Runtime%%'"); $t.Uninstall() | Out-File -FilePath $Log -Append
-        $t = (Get-WmiObject win32_product -filter "name like 'JavaFX%%'"); $t.Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "name like '%%J2SE Runtime%%'").Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "name like 'Java%%Runtime%%'").Uninstall() | Out-File -FilePath $Log -Append
+        (Get-WmiObject win32_product -filter "name like 'JavaFX%%'").Uninstall() | Out-File -FilePath $Log -Append
+        # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
         Write-Output "$(Get-Date)   Done." | Out-File -FilePath $Log -Append
         Write-Verbose "$(Get-Date)   Done."
 
