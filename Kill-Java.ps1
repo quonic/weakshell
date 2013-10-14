@@ -40,7 +40,7 @@ function Kill-Java
 
         # Clear log and create log dir if it's not there
         $mkdirs = $Log.Substring(0,$Log.Length - $Log.split('\')[$Log.split('\').Count - 1].Length)
-        New-Item -Path $mkdirs -ErrorAction SilentlyContinue
+        New-Item -Path $mkdirs -Type Folder -ErrorAction SilentlyContinue
         Clear-Content $Log -ErrorAction SilentlyContinue
         
         Write-Verbose " JAVA RUNTIME NUKER"
