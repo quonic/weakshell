@@ -3,8 +3,8 @@ function Kill-Java
     [CmdletBinding()]
     Param
     (
-        # Log defaults to "$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log"
-        $Log="$env:SystemDrive\Logs\$env:COMPUTERNAME Java Runtime Removal.log",
+        # Log defaults to "$PSScriptRoot\$env:COMPUTERNAME Java Runtime Removal.log"
+        $Log="$PSScriptRoot\$env:COMPUTERNAME Java Runtime Removal.log",
 
         # Force close Applications running/using java
         [switch]
