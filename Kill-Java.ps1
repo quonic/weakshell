@@ -15,10 +15,10 @@ function Kill-Java
         $Reinstall,
 
         # Java x64 Install file and location
-        $Java64Bin=".\jre-7u40-windows-x64.exe",
+        $Java64Bin="C:\Scripts\jre-7u40-windows-x64.exe",
 
         # Java x86 Install file and location
-        $Java86Bin=".\jre-7u40-windows-i586.exe",
+        $Java86Bin="C:\Scripts\jre-7u40-windows-i586.exe",
 
         # Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
         $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn",
