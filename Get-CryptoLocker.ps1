@@ -83,7 +83,7 @@ function Get-CryptoLocker
 			            Catch{}			
 		            }
                     
-                    $log.Add($ComputerName,$Stauts)
+                    $log.Add($ComputerName,$Status)
                 }
             
             
@@ -98,8 +98,4 @@ if($Host.Name -eq "Windows PowerShell ISE Host")
     #In ISE or Running from console
     # Do nothing
     "Type Get-CryptoLocker to run"
-}else
-{
-    #We are being run in a script use defaults
-    Get-CryptoLocker
 }
