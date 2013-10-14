@@ -15,10 +15,10 @@ function Kill-Java
         $Reinstall,
 
         # Java x64 Install file and location
-        $Java64Bin="http://download.oracle.com/otn-pub/java/jdk/7u25-b17/jdk-7u25-windows-x64.exe",
+        $Java64Bin=".\jre-7u40-windows-x64.exe",
 
         # Java x86 Install file and location
-        $Java86Bin="http://download.oracle.com/otn-pub/java/jdk/7u25-b17/jdk-7u25-windows-i586.exe",
+        $Java86Bin=".\jre-7u40-windows-i586.exe",
 
         # Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
         $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn",
@@ -319,6 +319,7 @@ function Kill-Java
                 "32-bit"
                 Write-Log "! Now installing $Java86bin" -Path $Log
                 if($Java32Args -eq $null){
+                    "Null"
                     Start-Proc $Java86Bin $JavaArgs
                 }else{
                     Start-Proc $Java86Bin $Java86Args
@@ -327,10 +328,9 @@ function Kill-Java
                 Write-Output "Done." -Path $Log
             } else {
                 "64-bit"
-                $Java64Bin
-
                 Write-Log "! Now installing $Java64bin" -Path $Log
                 if($Java64Args -eq $null){
+                    "Null"
                     Start-Proc $Java64Bin $JavaArgs
                 }else{
                     Start-Proc $Java64Bin $Java64Args
