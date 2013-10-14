@@ -15,13 +15,13 @@ function Kill-Java
         $Reinstall,
 
         # Java x64 Install file and location
-        $Java64Bin="C:\Scripts\jre-7u40-windows-x64.exe",
+        $Java64Bin="$PSScriptRoot\jre-7u40-windows-x64.exe",
 
         # Java x86 Install file and location
-        $Java86Bin="C:\Scripts\jre-7u40-windows-i586.exe",
+        $Java86Bin="$PSScriptRoot\jre-7u40-windows-i586.exe",
 
         # Java Arg, defaults to "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
-        $JavaArgs="/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn",
+        $JavaArgs="/s ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress /qn",
         
         # Java Args for x64, if this is null JavaArgs will be used.
         $Java64Args,
