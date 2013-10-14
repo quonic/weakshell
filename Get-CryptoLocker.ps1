@@ -83,13 +83,13 @@ function Get-CryptoLocker
 			            Catch{}			
 		            }
                     
-                    $log.Add($ComputerName,$Status)
+                    "$ComputerName,$Status"
                 }
             
             
         }
 	    
-	    return $log	 
+	    #return $log	 
     }
 }
 
