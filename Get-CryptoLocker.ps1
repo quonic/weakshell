@@ -52,15 +52,14 @@ function Get-CryptoLocker
         {
             $Computer = (Get-ADComputer -Filter {enabled -eq "true"} -SearchBase "ou=Workstations,$Domain" -Properties cn).cn
         }
-        $log = @{}
     }
     Process
     {
         #Test-Connection -Computer $Computer -BufferSize 16 -Count 1 -ea 0 -TimeToLive 32 | ForEach {
-        ForEach ($comp in $Computer) {
+        ForEach ($ComputerName in $Computer) {
             	$Status = $null  #if machine is not available
                 #Check if computer is windows or not and that we have access
-                if(Test-Path "\\$comp\admin$\win.ini"){
+                if(Test-Path "\\$ComputerName\admin$\win.ini"){
 
                     $Status = $false
 		            $SubKeyNames = $null
