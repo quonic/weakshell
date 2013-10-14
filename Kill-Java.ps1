@@ -79,9 +79,9 @@ function Kill-Java
 	        Write-Log "  Variable force_CLOSE_PROCESSES is set to '$Force'. Checking ForEach-Object running processes beForEach-Objecte execution." -Path $Log
 
 	        #Search and report if processes of the list are running and exit if any are running
-	        ForEach-Object-each ($killlist) {
+	        ForEach-Object ($killlist) {
                 # ToDo do some checking id the process is running
-		        Write-Log "  Searching ForEach-Object $_.exe..."
+		        Write-Log "  Searching ForEach $_.exe..."
 		        if(Get-Process $_){
 				        Write-Log "! ERROR: Process '$_' is currently running, aborting." -Path $Log -Level Error
 				        exit $Force_exitcode
@@ -94,14 +94,14 @@ function Kill-Java
 
 
         ########
-        #UNINSTALLER SECTION #-- Basically here we just brute-force every "normal" method ForEach-Object
+        #UNINSTALLER SECTION #-- Basically here we just brute-force every "normal" method ForEach
         ########   removing Java, and then resort to more painstaking methods later
         Write-Log "  Targeting individual JRE versions..." -Path $Log
         # ToDo --Remove-- Write-Verbose "$(Get-Date)   This might take a few minutes. Don't close this window."
 
         #Okay, so all JRE runtimes (series 4-7) use product GUIDs, with certain numbers that increment with each new update (e.g. Update 25)
         #This makes it easy to catch ALL of them through liberal use of WMI wildcards ("_" is single character, "%" is any number of characters)
-        #Additionally, JRE 6 introduced 64-bit runtimes, so in addition to the two-digit Update XX revision number, we also check ForEach-Object the architecture 
+        #Additionally, JRE 6 introduced 64-bit runtimes, so in addition to the two-digit Update XX revision number, we also check ForEach the architecture 
         #type, which always equals '32' or '64'. The first wildcard is the architecture, the second is the revision/update number.
 
         #JRE 7
@@ -111,8 +111,8 @@ function Kill-Java
 
         #JRE 6
         Write-Log "  JRE 6..." -Path $Log
-        #1st line is ForEach-Object updates 23-xx, after 64-bit runtimes were introduced.
-        #2nd line is ForEach-Object updates 1-22, beForEach-Objecte Oracle released 64-bit JRE 6 runtimes
+        #1st line is For updates 23-xx, after 64-bit runtimes were introduced.
+        #2nd line is For updates 1-22, before Oracle released 64-bit JRE 6 runtimes
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__160__FF}'").Uninstall()
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0160__0}'").Uninstall()
         # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
@@ -304,7 +304,7 @@ function Kill-Java
         }
 
         #Miscellaneous stuff, sometimes left over by the installers
-        Write-Log "  Searching ForEach-Object and purging other Java Runtime-related directories..." -Path $Log
+        Write-Log "  Searching for and purging other Java Runtime-related directories..." -Path $Log
         Remove-Item -Force "$env:SystemDrive\1033.mst "
         Remove-Item -Force -Recurse "$env:SystemDrive\J2SE Runtime Environment*"
 
