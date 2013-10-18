@@ -1,5 +1,23 @@
 function Kill-Java
 {
+<#
+.Synopsis
+    Uninstall all versions of Java and remove nearly any trace that it was installed, for a clean install or just removal.
+.DESCRIPTION
+    This will remove all versions of Java and can also install you intended version of Java.
+.EXAMPLE
+    Kill-Java
+.EXAMPLE
+    Kill-Java -Log "c:\Logs\Kill-Java.log"
+.EXAMPLE
+    Kill-Java -Log "c:\Logs\Kill-Java.log" -Force
+.EXAMPLE
+    Kill-Java -Log "c:\Logs\Kill-Java.log" -Force -Reinstall
+.EXAMPLE
+    Kill-Java -Force -Reinstall -JavaBin ".\Java-x64.exe"
+.EXAMPLE
+    Kill-Java -Force -Reinstall -JavaBin ".\Java-x64.exe" -JavaArgs "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
+#>
     [CmdletBinding()]
     Param
     (
@@ -32,70 +50,63 @@ function Kill-Java
 
     Begin
     {
+        #region Variables
         $Force_exitcode="1618"
         $host.ui.RawUI.WindowTitle="Java Runtime Nuker"
         $arch=$env:PROCESSOR_ARCHITECTURE
         $isXP=$false
-        if((Get-WmiObject -class Win32_OperatingSystem).Caption -match "XP"){$isXP=$true}
+        $killlist="java,javaw,javaws,jqs,jusched,iexplore,iexplorer,firefox,chrome,palemoon".Split(",")
+        #endregion
+        
+        Write-Verbose "JAVA RUNTIME NUKER"
 
-        # Clear log and create log dir if it's not there
+        #region Clear log and create log dir if it's not there
         $mkdirs = $Log.Substring(0,$Log.Length - $Log.split('\')[$Log.split('\').Count - 1].Length)
         New-Item -Path $mkdirs -Type Folder -ErrorAction SilentlyContinue
         Clear-Content $Log -ErrorAction SilentlyContinue
+        #endregion
         
-        Write-Verbose " JAVA RUNTIME NUKER"
-        if($isXP=$true){Write-Verbose ""; Write-Verbose " ! Windows XP detected, using alternate command set to compensate."}
-        Write-Verbose ""
+        #region XP detect
+        if((Get-WmiObject -class Win32_OperatingSystem).Caption -match "XP"){$isXP=$true}
+        if($isXP=$true){Write-Verbose " ! Windows XP detected, using alternate command set to compensate."}
         Write-Log "Beginning removal of Java Runtime Environments (series 3-7, x86 and x64) and JavaFX..." -Path $Log
+        #endregion
 
-        #Do a quick check to make sure WMI is working
+        #region Check WMI
         $wmiproc=Start-Proc "WINMGMT.EXE" "/verifyrepository"
         if($wmiproc.ExitCode -ne 0){
             Write-Log "WMI appears to be working." -Path $Log
         }else{
             Write-Log "WMI appears to be broken. It should still work. Please use WMIDiag.vbs to help diagnose. http://www.microsoft.com/en-us/download/details.aspx?id=7684" -Path $Log
         }
+        #endregion
 
         # I don't think this is needed any more
         # cscript.exe $WMIdiagBin LogFilePath=$env:TEMP
-        $killlist="java,javaw,javaws,jqs,jusched,iexplore,iexplorer,firefox,chrome,palemoon".Split(",")
-        #########
-        #force-CLOSE PROCESSES #-- Do we want to kill Java beForEach-Objecte running? If so, this is where it happens
-        #########
+        
+        #region Force Close Processes
         if ($Force) {
-	        #Kill all browsers and running Java instances
 	        Write-Log "  Looking ForEach-Object and closing all running browsers and Java instances..." -Path $Log
-
 		    $killlist | ForEach-Object {
-                # ToDo do some checking id the process is running
 			    Write-Output "Searching ForEach-Object $_.exe..."
 			    (Get-Process $_).Kill()
 		    }
 		    Write-Verbose ""
         }else{
-
-        #If we DON'T want to force-close Java, then check ForEach-Object possible running Java processes and abort the script if we find any
-        
-	        Write-Log "  Variable force_CLOSE_PROCESSES is set to '$Force'. Checking ForEach-Object running processes beForEach-Objecte execution." -Path $Log
-
-	        #Search and report if processes of the list are running and exit if any are running
-	        ForEach-Object ($killlist) {
-                # ToDo do some checking id the process is running
-		        Write-Log "  Searching ForEach $_.exe..."
+	        Write-Log "  Variable force is set to '$Force'. Checking for running processes before execution." -Path $Log
+	        $killlist | ForEach-Object {
+		        Write-Log "  Searching for $_.exe..."
 		        if(Get-Process $_){
 				        Write-Log "! ERROR: Process '$_' is currently running, aborting." -Path $Log -Level Error
 				        exit $Force_exitcode
 			        }
 		        }
 	        }else{
-	        #If we made it this far, we didn't find anything, so we can go ahead
 	        Write-Log "  All clear, no running processes found. Going ahead with removal..." -Path $Log
         }
+        #endregion
 
-
-        ########
-        #UNINSTALLER SECTION #-- Basically here we just brute-force every "normal" method ForEach
-        ########   removing Java, and then resort to more painstaking methods later
+        #region UNINSTALLER SECTION
         Write-Log "  Targeting individual JRE versions..." -Path $Log
         # ToDo --Remove-- Write-Verbose "$(Get-Date)   This might take a few minutes. Don't close this window."
 
@@ -104,30 +115,34 @@ function Kill-Java
         #Additionally, JRE 6 introduced 64-bit runtimes, so in addition to the two-digit Update XX revision number, we also check ForEach the architecture 
         #type, which always equals '32' or '64'. The first wildcard is the architecture, the second is the revision/update number.
 
-        #JRE 7
+        #region JRE 7
         Write-Log "  JRE 7..." -Path $Log
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__170__FF}'").Uninstall()
         # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
+        #endregion
 
-        #JRE 6
+        #region JRE 6
         Write-Log "  JRE 6..." -Path $Log
         #1st line is For updates 23-xx, after 64-bit runtimes were introduced.
         #2nd line is For updates 1-22, before Oracle released 64-bit JRE 6 runtimes
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{26A24AE4-039D-4CA4-87B4-2F8__160__FF}'").Uninstall()
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0160__0}'").Uninstall()
         # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
+        #endregion
 
-        #JRE 5
+        #region JRE 5
         Write-Log "  JRE 5..." -Path $Log
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{3248F0A8-6813-11D6-A77B-00B0D0150__0}'").Uninstall()
         # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
+        #endregion
 
-        #JRE 4
+        #region JRE 4
         Write-Log "  JRE 4..." -Path $Log
         (Get-WmiObject win32_product -filter "IdentifyingNumber like '{7148F0A8-6813-11D6-A77B-00B0D0142__0}'").Uninstall()
         # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
+        #endregion
 
-        #JRE 3 (AKA "Java 2 Runtime Environment Standard Edition" v1.3.1_00-25)
+        #region JRE 3 (AKA "Java 2 Runtime Environment Standard Edition" v1.3.1_00-25)
         Write-Log "  JRE 3 (AKA Java 2 Runtime v1.3.xx)..." -Path $Log
         #This version is so old we have to resort to different methods of removing it
         #Loop through each sub-version
@@ -138,19 +153,19 @@ function Kill-Java
         #This one wouldn't fit in the loop above
         Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'$env:ProgramFiles\JavaSoft\JRE\1.3\Uninst.isu' -a"
         Start-Proc "$env:SystemRoot\IsUninst.exe" "-f'${env:ProgramFiles(x86)}\JavaSoft\JRE\1.3\Uninst.isu' -a"
+        #endregion
 
-        #Wildcard uninstallers
+        #region Wildcard uninstallers
         Write-Log "  Specific targeting done. Now running WMIC wildcard catchall uninstallation..." -Path $Log
         (Get-WmiObject win32_product -filter "name like '%%J2SE Runtime%%'").Uninstall()
         (Get-WmiObject win32_product -filter "name like 'Java%%Runtime%%'").Uninstall()
         (Get-WmiObject win32_product -filter "name like 'JavaFX%%'").Uninstall()
         # ToDo Need to do some error checking to eliminate the "InvokeMethodOnNull" error even though it is safe to keep it as is.
         Write-Log "  Done." -Path $Log
+        #endregion
 
-        #######:
-        #REGISTRY CLEANUP #-- This is where it gets hairy. Don't read ahead if you have a weak constitution.
-        #######:
-        # If not XP then Clean the Registry
+        #region REGISTRY CLEANUP
+        #-- This is where it gets hairy. Don't read ahead if you have a weak constitution.
         if ($isXP -eq $false) {
             Write-Log "  Commencing registry cleanup..." -Path $Log
             Write-Log "  Searching ForEach-Object residual registry keys..." -Path $Log
@@ -226,35 +241,38 @@ function Kill-Java
             # We are XP so te above was skipped
             Write-Log "! Registry cleanup doesn't work on Windows XP. Skipping..." -Path $Log
         }
-        ##########::
-        #FILE AND DIRECTORY CLEANUP ::
-        ##########::
-        #:file_cleanup ---------------------------------
-        Write-Log "  Commencing file and directory cleanup..." -Path $Log
+        #endregion
 
-        #Kill accursed Java tasks in Task Scheduler
+        #endregion
+
+        #region FILE AND DIRECTORY CLEANUP
+        Write-Log "  Commencing file and directory cleanup..." -Path $Log
+        #region Kill accursed Java tasks in Task Scheduler
         Write-Log "  Removing Java tasks from the Windows Task Scheduler..." -Path $Log
         if("$env:windir\tasks\Java*.job"){ Remove-Item -Force $env:windir\tasks\Java*.job}
         if("$env:windir\System32\tasks\Java*.job"){Remove-Item -Force $env:windir\System32\tasks\Java*.job}
         if("$env:windir\SysWOW64\tasks\Java*.job"){Remove-Item -Force $env:windir\SysWOW64\tasks\Java*.job}
-
-        #Kill the accursed Java Quickstarter service
+        #endregion
+        
+        #region Kill the accursed Java Quickstarter service
         sc query JavaQuickStarterService >NUL
         if( -not ($? -eq 1060)){
 	        Write-Log "  De-registering and removing Java Quickstarter service..." -Path $Log
 	        net stop JavaQuickStarterService
 	        sc delete JavaQuickStarterService
         }
+        #endregion
 
-        #Kill the accursed Java Update Scheduler service
+        #region Kill the accursed Java Update Scheduler service
         sc query jusched >NUL
         if( -not ($? -eq 1060)) {
 	        Write-Log "  De-registering and removing Java Update Scheduler service..." -Path $Log
 	        net stop jusched
 	        sc delete jusched
         }
+        #endregion
 
-        #This is the Oracle method of disabling the Java services. 99% of the time these commands aren't required. 
+        #region This is the Oracle method of disabling the Java services. 99% of the time these commands aren't required. 
         if("${env:ProgramFiles(x86)}\Java\jre6\bin\jqs.exe"){ Start-Proc "${env:ProgramFiles(x86)}\Java\jre6\bin\jqs.exe" "-disable"}
         if("${env:ProgramFiles(x86)}\Java\jre7\bin\jqs.exe"){ Start-Proc "${env:ProgramFiles(x86)}\Java\jre7\bin\jqs.exe" "-disable"}
         if("$env:ProgramFiles\Java\jre6\bin\jqs.exe"){ Start-Proc "$env:ProgramFiles\Java\jre6\bin\jqs.exe" "-disable"}
@@ -264,20 +282,21 @@ function Kill-Java
         if("$env:ProgramFiles\Java\jre6\bin\jqs.exe"){ Start-Proc "$env:ProgramFiles\Java\jre6\bin\jqs.exe" "-unregister"}
         if("$env:ProgramFiles\Java\jre7\bin\jqs.exe"){ Start-Proc "$env:ProgramFiles\Java\jre7\bin\jqs.exe" "-unregister"}
         Start-Proc "msiexec.exe" "/x {4A03706F-666A-4037-7777-5F2748764D10} /qn /norestart"
+        #endregion
 
-        #Nuke 32-bit Java installation directories
+        #region Nuke 32-bit Java installation directories
         Write-Log "  Removing "${env:ProgramFiles(x86)}\Java\jre*" directories..." -Path $Log
 	    ForEach-Object(Get-ChildItem -Filter { -like "j2re" -or -like "jre" } "${env:ProgramFiles(x86)}\Java\"){if($_){Remove-Item -Force "$_"}}
 	    if("${env:ProgramFiles(x86)}\JavaSoft\JRE"){ Remove-Item -force "${env:ProgramFiles(x86)}\JavaSoft\JRE"}
-
-        #Nuke 64-bit Java installation directories
+        #endregion
+        #region Nuke 64-bit Java installation directories
         Write-Log "  Removing "$env:ProgramFiles\Java\jre*" directories..." -Path $Log
         ForEach-Object(Get-ChildItem -Filter { -like "j2re" -or -like "jre" } "$env:ProgramFiles\Java\"){if($_){Remove-Item -Force "$_"}}
         if("$env:ProgramFiles\JavaSoft\JRE"){ Remove-Item -force "$env:ProgramFiles\JavaSoft\JRE"}
-
-        #Nuke Java installer cache ( thanks to cannibalkitteh )
+        #endregion
+        #region Nuke Java installer cache ( thanks to cannibalkitteh )
         Write-Log "  Purging Java installer cache..." -Path $Log
-        #XP VERSION
+        #region XP VERSION
         if ($isXP=$true) {
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             $userlist = (Get-Item "$env:SystemDrive\Documents and Settings\*" | Select-Object Name)
@@ -291,7 +310,8 @@ function Kill-Java
                 }
             }
         } else {
-	        #ALL OTHER VERSIONS OF WINDOWS
+            #endregion
+	        #region ALL OTHER VERSIONS OF WINDOWS
             #Get list of users, put it in a file, then use it to iterate through each users profile, deleting the AU folder
             $userlist = (Get-Item "$env:SystemDrive\USers\*" | Select-Object Name)
             ForEach-Object($userlist){ Remove-Item -force "$env:SystemDrive\Users\$_\AppData\LocalLow\Sun\Java\AU"}
@@ -302,18 +322,17 @@ function Kill-Java
                 }
             }
         }
+        #endregion
+        #endregion
 
-        #Miscellaneous stuff, sometimes left over by the installers
+        #region Miscellaneous stuff, sometimes left over by the installers
         Write-Log "  Searching for and purging other Java Runtime-related directories..." -Path $Log
         Remove-Item -Force "$env:SystemDrive\1033.mst "
         Remove-Item -Force -Recurse "$env:SystemDrive\J2SE Runtime Environment*"
-
+        #endregion
         Write-Log "  File and directory cleanup done." -Path $Log
 
-        ########:
-        #JAVA REINSTALLATION #-- If we wanted to reinstall the JRE after cleanup, this is where it happens
-        ########:
-    #ToDo: rewite this to download if an URL or copy to local if a Share
+        #region JAVA REINSTALLATION
         if($Reinstall -eq $true) {
             if ([System.IntPtr]::Size -eq 4) {
                 "32-bit"
@@ -339,6 +358,7 @@ function Kill-Java
                 Write-Output "Done." -Path $Log
             }
         }
+        #endregion
 
         #Done.
         Write-Log "  Registry hive backups: $env:TEMP\java_purge_registry_backup\" -Path $Log
@@ -363,26 +383,6 @@ function Kill-Java
     End
     {
     }
-
-<#
-.Synopsis
-   Uninstall all versions of Java and remove nearly any trace that it was installed, for a clean install or just removal.
-.DESCRIPTION
-   This will remove all versions of Java and can also install you intended version of Java.
-.EXAMPLE
-   Kill-Java
-.EXAMPLE
-   Kill-Java -Log "c:\Logs\Kill-Java.log"
-.EXAMPLE
-   Kill-Java -Log "c:\Logs\Kill-Java.log" -Force
-.EXAMPLE
-   Kill-Java -Log "c:\Logs\Kill-Java.log" -Force -Reinstall
-.EXAMPLE
-   Kill-Java -Force -Reinstall -JavaBin ".\Java-x64.exe"
-.EXAMPLE
-   Kill-Java -Force -Reinstall -JavaBin ".\Java-x64.exe" -JavaArgs "/s /v'ADDLOCAL=ALL IEXPLORER=1 MOZILLA=1 JAVAUPDATE=0 REBOOT=suppress' /qn"
-#>
-
 }
 
 function Start-Proc{
