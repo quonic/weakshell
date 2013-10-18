@@ -1,3 +1,16 @@
+<#
+Notes:
+
+To include in a script or to use with task scheduler
+Use:
+. "<location>\Kill-Java.ps1"
+
+Then call Kill-Java as you would any other function.
+
+#>
+
+
+
 function Kill-Java
 {
 <#
