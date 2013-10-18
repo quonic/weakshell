@@ -9,7 +9,18 @@ Then call Kill-Java as you would any other function.
 
 #>
 
+<#
 
+Might be a decent replacment for Start-Proc
+
+$msifile= '<path>\install.msi' 
+$arguments= ' /qn /l*v .\werd.txt' 
+Start-Process `
+     -file  $msifile `
+     -arg $arguments `
+     -passthru | wait-process
+
+#>
 
 function Kill-Java
 {
