@@ -103,7 +103,7 @@ function Save-InfoToAD
         $env:USERDNSDOMAIN.Split(".") | foreach {
             if($i -eq 0){$Domain = $Domain + "DC=" + $_}else{$Domain = $Domain + ",DC=" + $_}
             $i++}
-        # Get the folder of the log and create the folder. Disregard if there is an error as the current user shuld have access.
+        # Get the folder of the log and create the folder. Disregard if there is an error as the current user should have access.
         #  Shame on you for not reading the comments before running an untrusted script... :/
         $mkdirs = $LogFile.Substring(0,$LogFile.Length - $LogFile.split('\')[$LogFile.split('\').Count - 1].Length)
         mkdir $mkdirs -ErrorAction SilentlyContinue
