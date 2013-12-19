@@ -8,9 +8,6 @@ import-module ActiveDirectory
 
    Defaults:
 
-   -EmailAddress will default to the username@yourdomain.com
-      Please change the .com to your liking
-   
    -Computer can be accepted from the pipe line or as a variable
 
    -Credential if set will prompt for your credentials and base the Domain\User off the running user's info
