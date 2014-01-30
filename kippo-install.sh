@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # This needs to run as root
+yum -y install python-twisted
 cd ~/
 wget http://kippo.googlecode.com/files/kippo-0.8.tar.gz
 tar xzf kippo-0.8.tar.gz
