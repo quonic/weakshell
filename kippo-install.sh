@@ -1,3 +1,6 @@
+#! /bin/bash
+
+# This needs to run as root
 cd ~/
 wget http://kippo.googlecode.com/files/kippo-0.8.tar.gz
 tar xzf kippo-0.8.tar.gz
