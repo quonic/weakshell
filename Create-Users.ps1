@@ -9,14 +9,11 @@ Import-Module ActiveDirectory
    New-User.ps1 "C:\NewUsers\"
    New-User.ps1 -Folder "C:\NewUsers\"
 #>
+# File to import new user from
+[Parameter(Mandatory=$true,
+            Position=0)]
+$Folder = "C:\Scripts\NewUsers\"
 
-Param
-(
-    # File to import new user from
-    [Parameter(Mandatory=$true,
-                Position=0)]
-    $Folder = "C:\Scripts\NewUsers\"
-)
 
 $MailTo = "John Doe <johnd@$env:USERDNSDOMAIN>"
 $MailFrom = "MailBoxCreation <mis-noreply@$env:USERDNSDOMAIN>"
@@ -111,7 +108,7 @@ Move-Item -Path $Folder\UsersConsolidated.csv -Destination $Folder\Completed\
 Rename-Item -Path $Folder\Completed\UsersConsolidated.csv $Completed
 
 #Send mail to $MailTo to notify that script completed with the list of users that it created.
-send-mailmessage -to $MailTo -from $MailFrom -subject "MBCRC1: MailBox Creation Report" -Body $ReportList -Attachments $Folder\Completed\$Completed -useSSL -SmtpServer "mail.$env:USERDNSDOMAIN" 
+Send-MailMessage -to $MailTo -from $MailFrom -subject "MBCRC1: MailBox Creation Report" -Body $ReportList -Attachments $Folder\Completed\$Completed -useSSL -SmtpServer "mail.$env:USERDNSDOMAIN" 
 
 
 
