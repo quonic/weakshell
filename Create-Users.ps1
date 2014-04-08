@@ -1,15 +1,16 @@
 Import-Module ActiveDirectory
 
+
 <#
-.Synopsis
-   Create users from Excel document in Exchange
+.SYNOPSIS
+   NewUser
 .DESCRIPTION
-   Create users from the specifed Excel document in the Exchange 2010 Console.
-   This assumes that the Exchange 2010 Management Console is installed on the computer running this.
-   This also must be ran as administrator and under the 64bit powershell.
+   Creates Exhcange MailBox and AD account
 .EXAMPLE
-   .\Create-Users.ps1 C:\New-Users\MyListOfNewUSers.xlsx
+   NewUser.ps1 "C:\temp\userlist.csv"
+   NewUser.ps1 -File "C:\temp\userlist.csv"
 #>
+
 Param
 (
     # File to import new user from
@@ -20,6 +21,9 @@ Param
 
 Begin
 {
+$MailTo = "Quonic <quonic@$env:USERDNSDOMAIN>"
+$MailFrom = "MailBoxCreation <mis-noreply@$env:USERDNSDOMAIN>"
+
     # Setup Exchange Connection
     $version = (Get-ADObject $("CN=ms-Exch-Schema-Version-Pt,"+$((Get-ADRootDSE).NamingContexts | Where-Object {$_ -like "*Schema*"})) -Property rangeUpper).rangeUpper
     if(($version -eq 14726) -or ($version -le 14622) -or ($version -eq 15137)){
@@ -50,53 +54,37 @@ Begin
         Write-Output "Exitting"
         exit
     }
-
-    # Save the excel file as a csv file
-    $csvFile = ($env:temp + "\" + ((Get-Item -path $File).name).Replace(((Get-Item -path $File).extension),".csv"))
-    
-    Remove-Item $csvFile -ErrorAction SilentlyContinue
-    
-    $excelObject = New-Object -ComObject Excel.Application   
-    $excelObject.Visible = $false 
-    $workbookObject = $excelObject.Workbooks.Open($excelFile) 
-    $workbookObject.SaveAs($csvFile,6) # http://msdn.microsoft.com/en-us/library/bb241279.aspx
-    $workbookObject.Saved = $true
-    $workbookObject.Close()
-    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workbookObject) | Out-Null
-    $excelObject.Quit()
-    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excelObject) | Out-Null
-    [System.GC]::Collect()
-    [System.GC]::WaitForPendingFinalizers() 
-    
-    $UList = Import-Csv -path $csvFile
-    
-    Remove-Item $csvFile -ErrorAction SilentlyContinue
-
 }
-Process
-{
-    ForEach-Object ($UList){
-        if((Get-Mailbox -Identity $_.Alias -ErrorAction SilentlyContinue)){
-            Write-host "User " + $_.Alias + " Exists. Skipping..." -ForegroundColor Yellow
-            Write-Error "User " + $_.Alias + " Exists. Skipping..."
+Process{
+    $Users = Import-Csv -Path $File
+
+    $ErrorList = "Errors: `n"
+    $ReportList = "Report: `n"
+
+
+    ForEach-Object ($Users){
+        if((Get-Mailbox -Identity $_.Firstname + $_.Lastname.substring(0,1) -ErrorAction SilentlyContinue)){
+            Write-host "User " + $_.Firstname + $_.Lastname.substring(0,1) + " Exists. Skipping..." -ForegroundColor Yellow
+            Write-Error "User " + $_.Firstname + $_.Lastname.substring(0,1) + " Exists. Skipping..."
         }else{
-            # Create our user here
-            New-Mailbox -Name $_.Name -Alias $_.Alias -UserPrincipalName $_.Alias + "@" + $env:USERDNSDOMAIN -SamAccountName $_.SamAccountName -FirstName $_.FirstName -Initials $_.Initials -LastName $_.LastName -Password $_.Password -ResetPasswordOnNextLogon $_.ResetPasswordOnNextLogon
-            if( -not (Get-ADUser -Identity $_.Alias)){
-                Write-host "User " + $_.Alias + " Not created?" -ForegroundColor Yellow
+            New-Mailbox -Name $_.Firstname + " " + $_.Lastname -DisplayName $_.Firstname + " " + $_.Lastname -Alias $_.Firstname + $_.Lastname.substring(0,1) -UserPrincipalName $_.Firstname + $_.Lastname.substring(0,1) + "@" + $env:USERDNSDOMAIN -SamAccountName $_.Firstname + $_.Lastname.substring(0,1) -FirstName $_.FirstName -LastName $_.LastName -Password (ConvertTo-SecureString $Password -AsPlainText -Force) -Enabled $true -ResetPasswordOnNextLogon $true
+            if( -not (Get-ADUser -Identity $_.Firstname + $_.Lastname.substring(0,1))){
+                Write-host "User " + $_.Firstname + $_.Lastname.substring(0,1) + " Not created?" -ForegroundColor Yellow
+                send-mailmessage -to $MailTo -from $MailFrom -subject "MBCRE1: MailBox Creation Report $_.Firstname$_.Lastname.substring(0,1)" -Body "Error: Could not create user $_.Firstname $_.Lastname" -Attachments $File -useSSL -SmtpServer "mail.$env:USERDNSDOMAIN"
             }
-            # Do anything else with the user here.
+            $ReportList = $ReportList + "Created User $SAM `n"
         }
     }
+    send-mailmessage -to $MailTo -from $MailFrom -subject "MBCRC1: MailBox Creation Report" -Body $ErrorList -Attachments $File -useSSL -SmtpServer "mail.$env:USERDNSDOMAIN"
 }
 End
 {
 }
 
 <#
-Example Header and Row for input Excel file
+Example Header and Row for input CSV file
 
-Name,Alias,SamAccountName,FirstName,Initials,LastName,Password,ResetPasswordOnNextLogon
-First Last,firstl,firstl,First,FL,Last,Password123,TRUE
+Firstname,Lastname,Password
+John,Doe,Welcome1
 
 #>
