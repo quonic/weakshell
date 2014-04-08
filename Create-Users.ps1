@@ -21,8 +21,8 @@ Param
 
 Begin
 {
-$MailTo = "Quonic <quonic@$env:USERDNSDOMAIN>"
-$MailFrom = "MailBoxCreation <mis-noreply@$env:USERDNSDOMAIN>"
+    $MailTo = "Quonic <quonic@$env:USERDNSDOMAIN>"
+    $MailFrom = "MailBoxCreation <mis-noreply@$env:USERDNSDOMAIN>"
 
     # Setup Exchange Connection
     $version = (Get-ADObject $("CN=ms-Exch-Schema-Version-Pt,"+$((Get-ADRootDSE).NamingContexts | Where-Object {$_ -like "*Schema*"})) -Property rangeUpper).rangeUpper
