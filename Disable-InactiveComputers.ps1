@@ -66,7 +66,7 @@ function Disable-InactiveComputers
         
 
         $then = (Get-Date).AddDays(-$Days) # The 120 is the number of days from today since the last logon.
-        $getadcomps = Get-ADComputer -Property Name,lastLogonDate -Filter {(enabled -eq "true") -and (lastLogonDate -lt $then)} -SearchBase "$SearchBase,$Domain"
+        $getadcomps = Get-ADComputer -Property Name,lastLogonDate -Filter {(enabled -eq "true") -and (lastLogonDate -gt $then)} -SearchBase "$SearchBase,$Domain"
         if(!$getadcomps){
             Write-Warning "No inactive computers found."
             exit 0
