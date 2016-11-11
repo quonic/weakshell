@@ -1,4 +1,9 @@
+# This will pop up a window that you can select a vCenter server to connect to.
+# I generally add this to another script or run it before running my script.
+# TODO: make this into a function?
 
+
+# Add your vCenter servers here
 $ServerList = @(
 "vCenter1"
 "vCenter2"
