@@ -1,4 +1,4 @@
-# This will output the date in a 13 month type of calandar
+# This will output the date in a 13 month type of calendar
 # The nice thing about this is that the code doesn't have to care about leap years
 
 $StartDate = Get-Date -Day 1 -Month 1 -Year $(Get-Date).Year
@@ -10,6 +10,7 @@ $i = $Days
 $done = $false
 $month = 1
 $day = 1
+# Get how many days from the first day of the year to now
 Do{
     if($i -gt 28){
         $i = $i - 28
@@ -23,8 +24,8 @@ Do{
         
 }while(-not $done)
 
+# Figure out what month it is
 $dayofweeknumber = $day
-Write-Output $dayofweeknumber
 if($day -gt 7){
     if($day -gt 14){
         if($day -gt 21){
@@ -35,12 +36,14 @@ if($day -gt 7){
     $dayofweeknumber = $dayofweeknumber - 7
 }
 
+# Figure out if it's new years
 if($dayofweeknumber -gt 28 -and $month -eq 13){
     $month = 14
     $dayofweeknumber = $dayofweeknumber - 28
     $newyear = $true
 }
 
+# Figure out what day of the week it is
 switch ($dayofweeknumber)
 {
     1 {$dayofweek = "Sunday"}
