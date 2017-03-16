@@ -78,39 +78,34 @@ Function <FunctionName> {
 #>
 
 #--------------------------------------------------[Event Log Write-Log Function]--------------------------------------------------
+
+Function Write-Log {
 <#
 .SYNOPSIS
-  Writes entry to local system's Event Log
+    Standard Event Log entry writer
 .DESCRIPTION
-  Writes entry to local system's Event Log
+    Writes an entry to the local system's Event Log in a predictable and dependable way
 .PARAMETER Level
-  Sets the what type of entry this is.
+    Sets the what type of entry this is.
 .PARAMETER Message
-  The information that you wish to convey in the Event Log
+    The information that you wish to convey in the Event Log
 .PARAMETER EventID
-  The Event ID of this log entry
+    The Event ID of this log entry
 .INPUTS
-  None
+    None
 .OUTPUTS
-  None
+    None
 .NOTES
-  Version:        1.0
-  Author:         quonic/spyingwind
-  Creation Date:  3/16/2017
-  Purpose/Change: Initial Event Log Writer
+    Version:        1.0
+    Author:         Jim Caten
+    Creation Date:  3/16/2017
+    Purpose/Change: Initial Event Log Writer
 .EXAMPLE
-  Write-Log -Level Info -Message "Did task" -EventID 0
-  
-  Write-Log -EntryType Info -Message "Did task" -EventID 0
+    Write-Log -Level Info -Message "Did task" -EventID 0
+.EXAMPLE
+    Write-Log -EntryType Info -Message "Did task" -EventID 0
 #>
-Function Write-Log {
     Param(
-    [Parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet("Error", "Warn", "Info", "Fatal", "Debug", "Verbose")]
-    [Alias("EntryType")]
-    [string]
-    $Level,
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [string]
@@ -119,7 +114,13 @@ Function Write-Log {
     [ValidateNotNullOrEmpty()]
     [ValidateCount(0,65535)]
     [int]
-    $EventID
+    $EventID,
+    [Parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet("Error", "Warn", "Info", "Fatal", "Debug", "Verbose")]
+    [Alias("EntryType")]
+    [string]
+    $Level = "Info"
     )
 
     $Message = "{0}: {1}" -f $Level, $Message
@@ -133,6 +134,11 @@ Function Write-Log {
         'Verbose' { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType SuccessAudit -EventId $EventID -Message $Message }
     }
 }
+        'Debug'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
+        'Verbose' { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType SuccessAudit -EventId $EventID -Message $Message }
+    }
+}
+
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
 
 
