@@ -135,4 +135,26 @@ Function Write-Log {
 }
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
 
-#Script Execution goes here
+
+<# Template Code #>
+<#
+Begin {
+    <#initalizing variables and setting up things to be run, such as importing data or connecting to databases#>
+    Write-Log -Message "Started..." -EventID 0
+}
+Process {
+    Try {
+        <#code goes here#>
+    }
+    Catch {
+        Write-Log -Message "Error: $($_.Exception)" -Level Error -EventID 2
+        Break
+    }
+}
+End {
+    <#clean up any variables, closing connection to databases, or exporting data#>
+    If ($?) {
+        Write-Log -Message 'Completed Successfully.' -EventID 100
+    }
+}
+#>
