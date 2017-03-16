@@ -139,12 +139,12 @@ Function Write-Log {
 <# Template Code #>
 <#
 Begin {
-    <#initalizing variables and setting up things to be run, such as importing data or connecting to databases#>
+    #initalizing variables and setting up things to be run, such as importing data or connecting to databases
     Write-Log -Message "Started..." -EventID 0
 }
 Process {
     Try {
-        <#code goes here#>
+        #code goes here
     }
     Catch {
         Write-Log -Message "Error: $($_.Exception)" -Level Error -EventID 2
@@ -152,7 +152,7 @@ Process {
     }
 }
 End {
-    <#clean up any variables, closing connection to databases, or exporting data#>
+    #clean up any variables, closing connection to databases, or exporting data
     If ($?) {
         Write-Log -Message 'Completed Successfully.' -EventID 100
     }
