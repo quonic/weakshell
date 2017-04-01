@@ -22,14 +22,17 @@
 #>
 
 [CmdletBinding()]
-#---------------------------------------------------------[Script Parameters]------------------------------------------------------
+#[CmdletBinding(SupportsShouldProcess=$true)] # Use if you plan on accepting -whatif switch
+#region ---------------------------------------------------------[Script Parameters]------------------------------------------------------
 # https://msdn.microsoft.com/en-us/powershell/reference/5.1/microsoft.powershell.core/about/about_functions_advanced_parameters
 Param (
   #Script parameters go here
 
 )
-#------------------------------------------------------------[EventIDs]------------------------------------------------------------
-# Declare what Event IDs are used and their purpose
+#endregion
+
+#region ------------------------------------------------------------[EventIDs]------------------------------------------------------------
+# Declare what Event IDs are used, their purpose, and details on the reason for the log entry
 #  Example:
 <#
   EventID 0: Info, Running tasks. <Details of what is happening>
@@ -37,20 +40,23 @@ Param (
   EventID 2: Error, Something happened unexpectedly, and can't be handled. <Details of what is happening>
   EventID 4: Fatal, Something happened and exiting. <Details of what is happening>
 #>
+#endregion
 
-#---------------------------------------------------------[Initialisations]--------------------------------------------------------
+#region ---------------------------------------------------------[Initialisations]--------------------------------------------------------
 
 #Set Error Action to Silently Continue
 $ErrorActionPreference = 'SilentlyContinue'
 
 #Import Modules & Snap-ins
+#endregion
 
-#----------------------------------------------------------[Declarations]----------------------------------------------------------
+#region ----------------------------------------------------------[Declarations]----------------------------------------------------------
 
 #Any Global Declarations go here
 $ScriptName = "Template"
+#endregion
 
-#-----------------------------------------------------------[Functions]------------------------------------------------------------
+#region -----------------------------------------------------------[Functions]------------------------------------------------------------
 
 <#
 Function <FunctionName> {
@@ -76,8 +82,9 @@ Function <FunctionName> {
   }
 }
 #>
+#endregion
 
-#--------------------------------------------------[Event Log Write-Log Function]--------------------------------------------------
+#region --------------------------------------------------[Event Log Write-Log Function]--------------------------------------------------
 
 Function Write-Log {
 <#
@@ -116,31 +123,57 @@ Function Write-Log {
     [int]
     $EventID,
     [Parameter(Mandatory=$false)]
-    [ValidateNotNullOrEmpty()]
     [ValidateSet("Error", "Warn", "Info", "Fatal", "Debug", "Verbose")]
     [Alias("EntryType")]
     [string]
-    $Level = "Info"
+    $Level = "Info",
+    [Parameter(Mandatory=$false)]
+    [ValidateSet("EventLog", "Console", "LogFile")]
+    [string]
+    $Method = "EventLog",
+    [Parameter(Mandatory=$false)]
+    [string]
+    $File
     )
 
     $Message = "{0}: {1}" -f $Level, $Message
-
-    switch($Level) {
-        'Error'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType FailureAudit -EventId $EventID -Message $Message }
-        'Warn'    { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Warning -EventId $EventID -Message $Message }
-        'Info'    { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
-        'Fatal'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Error -EventId $EventID -Message $Message }
-        'Debug'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
-        'Verbose' { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType SuccessAudit -EventId $EventID -Message $Message }
+    
+    switch($Method){
+        'EventLog' {
+            switch($Level) {
+                'Error'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType FailureAudit -EventId $EventID -Message $Message }
+                'Warn'    { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Warning -EventId $EventID -Message $Message }
+                'Info'    { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
+                'Fatal'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Error -EventId $EventID -Message $Message }
+                'Debug'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
+                'Verbose' { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType SuccessAudit -EventId $EventID -Message $Message }
+            }
+        }
+        'Console' {
+            switch($Level) {
+                'Error'   { Write-Error -Message "$Message" -ErrorId $EventID }
+                'Warn'    { Write-Warning "Warning $EventID : $Message"}
+                'Info'    { Write-Information "Warning $EventID : $Message" -ForegroundColor White}
+                'Fatal'   { Write-Error -Message "$Message" -ErrorId $EventID}
+                'Debug'   { Write-Debug -Message "$EventID : $Message"}
+                'Verbose' { Write-Verbose "Warning $EventID : $Message"}
+            }
+        }
+        'LogFile' {
+            switch($Level) {
+                'Error'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType FailureAudit -EventId $EventID -Message $Message }
+                'Warn'    { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Warning -EventId $EventID -Message $Message }
+                'Info'    { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
+                'Fatal'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Error -EventId $EventID -Message $Message }
+                'Debug'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
+                'Verbose' { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType SuccessAudit -EventId $EventID -Message $Message }
+            }
+        }
     }
 }
-        'Debug'   { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType Information -EventId $EventID -Message $Message }
-        'Verbose' { Write-EventLog -LogName "Application" -Source $ScriptName -EntryType SuccessAudit -EventId $EventID -Message $Message }
-    }
-}
+#endregion
 
-#-----------------------------------------------------------[Execution]------------------------------------------------------------
-
+#region -----------------------------------------------------------[Execution]------------------------------------------------------------
 
 <# Template Code #>
 <#
@@ -156,6 +189,11 @@ Process {
         Write-Log -Message "Error: $($_.Exception)" -Level Error -EventID 2
         Break
     }
+    if($pscmdlet.ShouldProcess("Target of action", "Action will happen")){
+        #do action
+    }else{
+        #don't do action but describe what would have been done
+    }
 }
 End {
     #clean up any variables, closing connection to databases, or exporting data
@@ -164,3 +202,5 @@ End {
     }
 }
 #>
+
+#endregion
