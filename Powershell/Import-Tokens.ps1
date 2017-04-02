@@ -15,7 +15,7 @@
   Version:        1.0
   Author:         Jim Caten
   Creation Date:  4/1/2017
-  Status:         Imcomplete
+  Status:         Imcomplete/get tokens and users
   Purpose/Change: Initial script development
 .EXAMPLE
   <Example explanation goes here>
@@ -234,7 +234,7 @@ Process {
     # Get all users from server
     $Users = Get-User -Server $Server -Resource $resource -Credentials $mycreds
     # TODO: write Get-UserGroups function
-    $ TODO: write New- functions, Update- maybe?
+    # TODO: write New- functions, Update- maybe?
 }
 End {
     #clean up any variables, closing connection to databases, or exporting data
