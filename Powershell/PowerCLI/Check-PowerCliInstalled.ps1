@@ -18,4 +18,13 @@ if($PowerCLIInstalled){
         Write-Output "Please remove the following modules:"
         Write-Output $VMwareModulesToRemove
     }
+    $HyperVModule = Get-Module Hyper* -ListAvailable
+    $HyperVModuleToRemove = @()
+    $HyperVModule | ForEach-Object {
+        $VMwareModulesToRemove += $_.Name
+    }
+    if($VMwareModulesToRemove){
+        Write-Output "Please remove the following modules:"
+        Write-Output $VMwareModulesToRemove
+    }
 }
