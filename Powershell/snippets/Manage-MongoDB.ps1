@@ -1,6 +1,27 @@
 
 Param([switch]$Install, [switch]$Remove)
 
+# Check for Mdbc and install if older or not installed
+$MdbcInstalled = Get-Module Mdbc* -ListAvailable
+if($MdbcInstalled){
+    $PSGallaryMdbc = Find-Module -Name Mdbc
+    if($MdbcInstalled.Version -eq $PSGallaryMdbc.Version){
+        Write-Output "Lastest Mdbc Installed"
+    }else{
+        Write-Output "Updating Mdbc for CurrentUser"
+        Write-Output "Install-Module -Name Mdbc -Scope CurrentUser"
+        Install-Module -Name Mdbc -Scope CurrentUser
+    }
+}else{
+    $MdbcModulesList = Get-Module Mdbc* -ListAvailable
+    $MdbcModulesToRemove = @()
+    if($MdbcModulesList){
+        Write-Output "Installing Mdbc for CurrentUser"
+        Write-Output "Install-Module -Name Mdbc -Scope CurrentUser"
+        Install-Module -Name Mdbc -Scope CurrentUser
+    }
+}
+
 $mongoDbPath = "$PSScriptRoot\MongoDB"
 $mongoDbConfigPath = "$mongoDbPath\mongod.cfg"
 $url = "http://downloads.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-v3.4-latest.zip" 
