@@ -242,7 +242,7 @@ $datastores | ForEach-Object {
 }
 
 $btnCopy.Add_Click({
-    $src = Get-Item -Path "vmstore:\$($pathRoot.Name)\$($pathVIServer.Name)\$($srcVMList.SelectedItems[0])"
+    $src = Get-Item -Path "vmstore:\$($pathRoot.Name)\$($pathVIServer.Name)\$($pathDatastore.Name)\$($srcVMList.SelectedItems[0])"
     $dst = $pathDatastore | Where-Object {$_.Name -like $($dstDatastore.SelectedItems[0])}
     Copy-DatastoreItem -Item $src -Destination $dst
 })
