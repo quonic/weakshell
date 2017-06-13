@@ -12,13 +12,13 @@ function Invoke-MBSAScan {
     $mbsacli = $null
     # Look for where mbsacli.exe is installed
     #  Restrict to FileSystem type PSDrive's
-    $Drives = get-psdrive -PSProvider FileSystem
+    $Drives = Get-PSdrive -PSProvider FileSystem
     $Drives | ForEach-Object {
         $Drive = "$($_.Name):\"
         $Root = $_.Root
         # We don't want to look on any shared drives
-        if(-not ($Root.Substring('\\') -like '\\')){
-            if(Test-Path -Path "$($Drive)$($exembsacli)"){
+        if (-not ($Root.Substring(0, 2) -like '\\')) {
+            if (Test-Path -Path "$($Drive)$($exembsacli)") {
                 Write-Verbose -Message "Found mbsacli.exe located on $($Drive)"
                 $mbsacli = "$($Drive)$($exembsacli)"
                 break
@@ -26,12 +26,13 @@ function Invoke-MBSAScan {
         }
     }
     # MBSA wasn't found, probably not installed
-    if (-not $mbsacli){
+    if (-not $mbsacli) {
         throw "MBSA Not installed"
     }
-    if($Verbose){
+    if ($Verbose) {
         & $mbsacli /d $($env:USERDOMAIN) /n os+iis+sql+password /wi /nvc /o %C%
-    }else{
+    }
+    else {
         & $mbsacli /d $($env:USERDOMAIN) /n os+iis+sql+password /wi /nvc /o %C% 2>&1> $null
     }
 }
@@ -42,9 +43,10 @@ function Save-MBSAReport {
         [string]
         $Path
     )
-    if($Path){
+    if ($Path) {
         $reportfile = $Path
-    }else{
+    }
+    else {
         $time = Get-Date
         $timeFormated = "$($time.Year)-$($time.Month)-$($time.Day)-$($time.Hour)-$($time.Minute)"
         $reportfile = "$($Env:USERPROFILE)\Desktop\MBSA-Report-$timeFormated.csv"
@@ -52,7 +54,7 @@ function Save-MBSAReport {
     Write-Verbose -Message "Saving report to $reportfile"
     Write-Verbose -Message "Getting all mbsa reports under $($Env:USERPROFILE)\SecurityScans\"
     $Reports = Get-ChildItem -Path "$($Env:USERPROFILE)\SecurityScans\*.mbsa"
-    if($Reports){
+    if ($Reports) {
         $Reports | ForEach-Object {
             [xml]$ScanResults = Get-Content $_
             $Machine = $ScanResults.SecScan.Machine
@@ -60,9 +62,10 @@ function Save-MBSAReport {
             $SingleMachine = $ScanResults.SecScan.Check | ForEach-Object {
                 $_.Detail.UpdateData
             } | ForEach-Object {
-                if($_.IsInstalled){
+                if ($_.IsInstalled) {
                     Write-Verbose -Message "Update $($_.KBID) installed."
-                }else{
+                }
+                else {
                     Write-Verbose -Message "Update $($_.KBID) not installed."
                     $data = New-Object -TypeName psobject
                     $data | Add-Member -MemberType NoteProperty -Name "Machine" -Value $Machine
@@ -73,7 +76,8 @@ function Save-MBSAReport {
             }
             Write-Output $SingleMachine
         } | Export-Csv -Path $reportfile -NoTypeInformation
-    }else{
+    }
+    else {
         Write-Error -Message "No reports found."
     }
     
