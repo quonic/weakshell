@@ -1,5 +1,11 @@
 # How to use a Plaster template
 
+## Reason for this document
+
+I got fed up with how there wasn't a clear example of how to use an existing template that someone else has created. So as a result I created this for mainly my self so that then next time I try to figure it out again, I don't have to go digging through the interent again. Less wasting of time and more time coding.
+
+## Steps
+
 As Admin
 ```
 Install-Module Plaster
