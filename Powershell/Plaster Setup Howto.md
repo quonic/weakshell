@@ -2,7 +2,9 @@
 
 ## Reason for this document
 
-I got fed up with how there wasn't a clear example of how to use an existing template that someone else has created. So as a result I created this for mainly my self so that then next time I try to figure it out again, I don't have to go digging through the interent again. Less wasting of time and more time coding.
+I got fed up with how there wasn't a clear example of how to use an existing template that someone else has created. So as a result I created this, mainly for my self. Just so that then next time I try to figure this out again, I don't have to go digging through the interent just to get frustrated with the lack of clear documentation.
+
+Less wasting of time fooling around and more time coding.
 
 ## Steps
 
