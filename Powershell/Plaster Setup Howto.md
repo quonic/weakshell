@@ -32,3 +32,4 @@ Then run the following, asuming that it is the first item:
 Invoke-Plaster -TemplatePath (Get-PlasterTemplate)[0].TemplatePath -DestinationPath .\YourProject  -Verbose
 ```
 
+Note: The reason why I have to add the template folder to the Plaster template folder is that for some reason it wont use a template from another folder. I think someone borked it with an update, but before it worked fine. At the time of this writing Plaster was at version (1.0.1).
