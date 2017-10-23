@@ -9,7 +9,7 @@ Param(
 
 # This Requires delprof2 in the same path or %PATH%
 # https://helgeklein.com/free-tools/delprof2-user-profile-deletion-tool/
-if((Get-Item -Path "delprof2")){
+if((Test-Path -Path "delprof2")){
     Write-Verbose "delprof2 found!"
 }else{
     Write-Error -Message "delprof2 not found!"
@@ -17,7 +17,7 @@ if((Get-Item -Path "delprof2")){
 }
 
 # Check that the serverlist is even accessible
-if((Get-Item -Path $ServerList)){
+if((Test-Path $ServerList)){
     $serverlist = Get-Content -Path $ServerList
 }else{
     Write-Error -Message "File $($ServerList) is missing."
