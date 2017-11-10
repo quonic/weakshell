@@ -19,13 +19,13 @@ $vms | ForEach-Object {
     if ($vm.Count -eq 1) {
         if ($vm.PowerState -eq "PoweredOff") {
             Start-VM -VM $vm
-            $VMRebootStatus = 1..100 | ForEach-Object {
+            $VMRebootStatus = 1..60 | ForEach-Object {
                 Write-Progress -Activity "Waiting for $($vm.Name) to boot" -PercentComplete 1
                 Start-Sleep -Seconds 10
                 if ((Get-VM $vm).extensionData.Guest.ToolsStatus -eq "toolsOK") {
                     return $true
                 }
-                elseif ((Get-VM $vm).extensionData.Guest.ToolsStatus -ne "toolsOK" -and $_ -ge 99) {
+                elseif ((Get-VM $vm).extensionData.Guest.ToolsStatus -ne "toolsOK" -and $_ -ge 59) {
                     return $false
                 }
             }
