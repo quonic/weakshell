@@ -11,24 +11,30 @@ $vms = @(
     
 #Update VMtools without reboot
 $reboot = $false
+$PowerOnVM = $true
     
 $vms | ForEach-Object {
     Write-Progress -Activity "Upgrading VMware Tools" -PercentComplete $(-1) -CurrentOperation "Upgrade Tools"
     $vm = Get-VM $_ -ErrorAction SilentlyContinue -ErrorVariable getVMError
     if ($vm.Count -eq 1) {
         if ($vm.PowerState -eq "PoweredOff") {
-            Start-VM -VM $vm
-            $VMRebootStatus = 1..24 | ForEach-Object {
-                Write-Progress -Activity "Waiting for $($vm.Name) to boot" -PercentComplete ((100 / 24) * $_) -CurrentOperation "Booting"
-                Start-Sleep -Seconds 10
-                if ((Get-VM $vm).extensionData.Guest.ToolsStatus -eq "toolsOK") {
-                    return $true
+            Write-Progress -Activity "Waiting for $($vm.Name) to boot" -PercentComplete 0 -CurrentOperation "Booting"
+            if ($PowerOnVM) {
+                Start-VM -VM $vm
+                $VMBootStatus = 1..24 | ForEach-Object {
+                    Write-Progress -Activity "Waiting for $($vm.Name) to boot" -PercentComplete ((100 / 24) * $_) -CurrentOperation "Booting"
+                    Start-Sleep -Seconds 10
+                    if ((Get-VM $vm).extensionData.Guest.ToolsStatus -eq "toolsOK") {
+                        return $true
+                    }
+                    elseif ((Get-VM $vm).extensionData.Guest.ToolsStatus -ne "toolsOK" -and $_ -ge 24) {
+                        return $false
+                    }
                 }
-                elseif ((Get-VM $vm).extensionData.Guest.ToolsStatus -ne "toolsOK" -and $_ -ge 24) {
-                    return $false
-                }
+            }else{
+                $VMBootStatus = $false
             }
-            if ($VMRebootStatus) {
+            if ($VMBootStatus) {
                 Write-Progress -Activity "Waiting for $($vm.Name) to boot" -Completed -CurrentOperation "Booting"
             }
             else {
@@ -40,6 +46,7 @@ $vms | ForEach-Object {
                     Reason  = "$($vm.Name) failed to boot or VMware Tools not working correctly."
                 }
             }
+            
         }
 
         if ($reboot) {
