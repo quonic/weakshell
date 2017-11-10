@@ -15,7 +15,7 @@ $reboot = $false
 $VMProgress = $vms.Count / 100
 $vms | ForEach-Object {
     Write-Progress -Activity "Upgrading VMware Tools" -PercentComplete $VMProgress
-    $vm = Get-VM $_ -ErrorAction SilentlyContinue -ErrorVariable getVMError| Where-Object { $_.PowerState -eq "PoweredOn"}
+    $vm = Get-VM $_ -ErrorAction SilentlyContinue -ErrorVariable getVMError
     if ($vm.Count -eq 1) {
         if ($vm.PowerState -eq "PoweredOff") {
             Start-VM -VM $vm
