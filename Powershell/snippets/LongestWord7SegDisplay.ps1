@@ -27,8 +27,8 @@ $w = (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dwyl/english-wor
 $b,$l = "[gkmqvwxzio]",""
 #endregion
 
-# Minified Code, 73 character
-($w|?{$_-notmatch$b-and$(if($_.Length-gt$l.Length){$l=$_;1}else{0})})[-1]
+# Minified Code, 66 character
+($w|?{$_-notmatch$b-and$(if($_.Length-gt$l.Length){$l=$_;1})})[-1]
 
 # Exploded
 (
@@ -38,8 +38,6 @@ $b,$l = "[gkmqvwxzio]",""
             if( $_.Length -gt $l.Length){
                 $l=$_
                 1 # Return true
-            }else{
-                0 # Return false
             }
         )
     }
