@@ -97,7 +97,6 @@ add-type -AssemblyName Microsoft.VisualBasic
 add-type -AssemblyName System.Windows.Forms
 
 Write-Output "Starting Space Presser"
-$found = $false
 $quittime = $false
 
 if (Get-process | Where-Object {$_.ProcessName -contains $ProcessName}) {
@@ -113,15 +112,11 @@ Write-Output "Turn on Caps Lock to quit."
 do {
 
     $proc = Get-process | Where-Object {$_.ProcessName -contains $ProcessName}
-    if (-not $proc) {
-        $found = $false
-    }
-    elseif ($proc.MainWindowHandle -eq (Get-ForgroundWindow)) {
+    if ($proc.MainWindowHandle -eq (Get-ForgroundWindow) {
         if ([Keyboard]::ScrollLock) {
             [System.Windows.Forms.SendKeys]::SendWait(" ")
             Start-Sleep -Milliseconds 10
         }
-        $found = $true
     }
     # If CapsLock is on quit
     if ([Keyboard]::CapsLock) {
