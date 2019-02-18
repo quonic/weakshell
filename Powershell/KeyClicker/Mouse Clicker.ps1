@@ -112,7 +112,7 @@ Write-Output "Turn on Caps Lock to quit."
 do {
 
     $proc = Get-process | Where-Object {$_.ProcessName -contains $ProcessName}
-    if ($proc.MainWindowHandle -eq (Get-ForgroundWindow) {
+    if ($proc.MainWindowHandle -eq (Get-ForgroundWindow)) {
         if ([Keyboard]::ScrollLock) {
             [System.Windows.Forms.SendKeys]::SendWait(" ")
             Start-Sleep -Milliseconds 10
