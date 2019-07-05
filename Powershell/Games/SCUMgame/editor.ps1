@@ -6,7 +6,7 @@ function Set-Stats {
 .DESCRIPTION
     This will change the specified charater to thhe stats you wish.
     Without specifying a stat, this will default to 5.
-    Without specifying skills, this will default to 4.
+    Without specifying skills, this will default to 5.
 .EXAMPLE
     PS C:\> Set-Stats -ProfileName "Bob" -Dexterity 4
     This will set Dexterity to 4 for the character named Bob
@@ -42,7 +42,7 @@ function Set-Stats {
         $Dexterity = 5,
         [ValidateRange(0, 5)]
         [int]
-        $Skills = 4
+        $Skills = 5
     )
 
     $sqlsplat = @{
@@ -50,7 +50,7 @@ function Set-Stats {
     }
     $userprofiles = Invoke-SqliteQuery @sqlsplat -Query "select * from user_profile"
     if ($ProfileName) {
-        $prisoner_id = ($userprofiles|Where-Object {$_.name -eq $ProfileName}).prisoner_id
+        $prisoner_id = ($userprofiles | Where-Object { $_.name -eq $ProfileName }).prisoner_id
     }
     else {
         $prisoner_id = $userprofiles.prisoner_id
@@ -64,19 +64,29 @@ function Set-Stats {
         $prisoner_xml.Prisoner.LifeComponent.CharacterAttributes._constitution = [string]$Constitution
         $prisoner_xml.Prisoner.LifeComponent.CharacterAttributes._intelligence = [string]$Intelligence
         $prisoner_xml.Prisoner.LifeComponent.CharacterAttributes._dexterity = [string]$Dexterity
-        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryStrength.Attribute | ForEach-Object {$_._value = [string]$Strength}
-        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryConstitution.Attribute | ForEach-Object {$_._value = [string]$Constitution}
-        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryIntelligence.Attribute | ForEach-Object {$_._value = [string]$Intelligence}
-        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryDexterity.Attribute | ForEach-Object {$_._value = [string]$Dexterity}
+        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryStrength.Attribute | ForEach-Object { $_._value = [string]$Strength }
+        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryConstitution.Attribute | ForEach-Object { $_._value = [string]$Constitution }
+        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryIntelligence.Attribute | ForEach-Object { $_._value = [string]$Intelligence }
+        $prisoner_xml.Prisoner.LifeComponent.AttributeHistoryDexterity.Attribute | ForEach-Object { $_._value = [string]$Dexterity }
         $prisoner = Invoke-SqliteQuery @sqlsplat -Query "update prisoner set xml = '$($prisoner_xml.OuterXml  -replace "`n`r","`0")' where id = $This_prisoner_id;"
 
         $prisoner_skill = Invoke-SqliteQuery @sqlsplat -Query "select * from prisoner_skill where prisoner_id = $This_prisoner_id"
         $prisoner_skill | ForEach-Object {
+            $exp = 10000
+            switch ($Skills) {
+                1 { $exp = 10000 }
+                2 { $exp = 100000 }
+                3 { $exp = 1000000 }
+                4 { $exp = 10000000 }
+                5 { $exp = 10000001 }
+                Default { $exp = 10000001 }
+            }
             [xml]$prisoner_skill_xml = $_.xml -replace "`0", ''
             $prisoner_skill_xml.Skill._level = [string]$Skills
-            $prisoner_skill_xml.Skill._experiencePoints = "9999"
+            $prisoner_skill_xml.Skill._experiencePoints = [string]$exp
             $sqlwhere = "where prisoner_id = $This_prisoner_id and name = '$($prisoner_skill_xml.Skill.'#text')'"
-            $Query = "update prisoner_skill set level = $([string]$Skills), experience = '10000', xml = '$($prisoner_skill_xml.OuterXml)' $sqlwhere;"
+            
+            $Query = "update prisoner_skill set level = $([string]$Skills), experience = '$($exp)', xml = '$($prisoner_skill_xml.OuterXml)' $sqlwhere;"
             try {
                 Invoke-SqliteQuery @sqlsplat -Query $Query
             }
@@ -90,7 +100,7 @@ function Set-Stats {
 
 function Get-SCUMItems {
     param (
-        [ValidateScript( {Test-Path -Path $_})]
+        [ValidateScript( { Test-Path -Path $_ })]
         [string]
         $Path = "C:\Users\$($env:USERNAME)\AppData\Local\SCUM\"
     )
@@ -112,11 +122,11 @@ function Get-SCUMItems {
         [xml]$prisoner_xml = $prisoner.xml -replace "`0", ''
         # Output Items
         
-        if ($ItemData) {$ItemData}
+        if ($ItemData) { $ItemData }
 
         # Items on back
         $prisoner_xml.Prisoner.InventoryComponent.ChildNodes |
-            Where-Object {$_.Inventory.Width -eq 0 -and $_.Inventory.Height -eq 0}
+        Where-Object { $_.Inventory.Width -eq 0 -and $_.Inventory.Height -eq 0 }
         
         foreach ($item in $prisoner_xml.Prisoner.InventoryComponent.ChildNodes) {
             $Count = $item.Inventory.InventorySlots._count
@@ -127,7 +137,7 @@ function Get-SCUMItems {
         
         # Held Items
         $prisoner_xml.Prisoner.AttachedItems.ChildNodes |
-            Where-Object {$_.Inventory.Width -eq 0 -and $_.Inventory.Height -eq 0}
+        Where-Object { $_.Inventory.Width -eq 0 -and $_.Inventory.Height -eq 0 }
         
         foreach ($item in $prisoner_xml.Prisoner.AttachedItems.ChildNodes) {
             $Count = $item.Inventory.InventorySlots._count
@@ -136,7 +146,7 @@ function Get-SCUMItems {
             }
         }
     }
-    $InventoryItems | Where-Object {$null -ne $_.'#text'} | Sort-Object -Property '#text' -Unique
+    $InventoryItems | Where-Object { $null -ne $_.'#text' } | Sort-Object -Property '#text' -Unique
 }
 
 function Export-SCUMItems {
@@ -144,21 +154,13 @@ function Export-SCUMItems {
         [Parameter(Mandatory, ValueFromPipeline)]
         [Object[]]
         $InputObject,
-        [ValidateScript( {Test-Path -Path $_})]
+        [ValidateScript( { Test-Path -Path $_ })]
         [string]
         $Path = "C:\Users\$($env:USERNAME)\AppData\Local\SCUM\"
     )
     $DataFile = Join-Path -Path $Path -ChildPath "ItemData.json"
     $InputObject | ConvertTo-Json | Out-File -FilePath $DataFile
 }
-
-# $Path = "C:\Users\$($env:USERNAME)\AppData\Local\SCUM\"
-# $DataFile = Join-Path -Path $Path -ChildPath "ItemData.json"
-# Remove-Item -Path $DataFile
-# Get-SCUMItems | Export-SCUMItems
-
-
-# Get-SCUMItems
 
 function Get-Character {
     param ()
@@ -207,4 +209,5 @@ function Set-Character {
 }
 
 
-Get-Character | Out-File -FilePath "C:\Users\$($env:USERNAME)\AppData\Local\SCUM\$($env:USERNAME)-$([guid]::NewGuid()).xml"
+# Get-Character | Out-File -FilePath "C:\Users\$($env:USERNAME)\AppData\Local\SCUM\$($env:USERNAME)-$([guid]::NewGuid()).xml"
+# Set-Stats
