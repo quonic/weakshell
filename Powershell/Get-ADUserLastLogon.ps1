@@ -42,7 +42,7 @@ function Get-ADUserLastLogon
             { 
 
                 $hostname = $_.HostName
-                $user = Get-ADUser $user | Get-ADObject -Properties lastLogon 
+                $user = Get-ADUser $user | Get-ADObject -Properties lastLogon -Server $dcs
 
                 #compare times from each DC to determine last login time
                 if($user.LastLogon -gt $time) 
