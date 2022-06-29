@@ -20,7 +20,7 @@ function Get-PolicyDefinition {
         $AdmxFiles = Get-ChildItem -Path $PolicyDefPath -Filter "*.admx" -ErrorAction Stop
         $LanguageFiles = Get-ChildItem -Path $LangPath -Filter "*.adml" -ErrorAction Stop
 
-        # Import xml data from .admx files andget only the policies
+        # Import xml data from .admx files and get only the policies
         $Policies = $(
             $AdmxFiles | ForEach-Object {
                 [xml]$(Get-Content -Path $_ -Raw -ErrorAction Stop)
