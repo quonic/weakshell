@@ -24,9 +24,9 @@ if [ "$(command -v apt)" ]; then
     else
         echo "[Info] Updating ${count} packages using apt"
         apt upgrade -y
-        exitcode=$?
-        if [[ "${exitcode}" != "0" ]]; then
-            echo "[Error] apt update failed with exit code ${exitcode}"
+        _exitcode=$?
+        if [[ "${_exitcode}" != "0" ]]; then
+            echo "[Error] apt update failed with exit code ${_exitcode}"
             exit 1
         fi
     fi
@@ -40,9 +40,9 @@ elif [ "$(command -v dnf)" ]; then
     else
         echo "[Info] Updating ${count} packages using dnf"
         dnf update -y
-        exitcode=$?
-        if [[ "${exitcode}" != "0" ]]; then
-            echo "[Error] dnf update failed with exit code ${exitcode}"
+        _exitcode=$?
+        if [[ "${_exitcode}" != "0" ]]; then
+            echo "[Error] dnf update failed with exit code ${_exitcode}"
             exit 1
         fi
     fi
