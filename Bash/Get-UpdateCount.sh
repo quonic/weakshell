@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-# Description: Get the number of updates available
+# Description:
+#  Get the number of updates available.
+#  This script checks for updates using the package manager of the system and returns the number of available updates.
+
+# Supported package managers:
+# - apt (Debian/Ubuntu)
+# - dnf (Fedora/CentOS/RHEL)
 
 # Exit code 100 indicates that there are updates available
 # Exit code 0 indicates that there are no updates available
