@@ -8,8 +8,8 @@
 # - apt (Debian/Ubuntu)
 # - dnf (Fedora/CentOS/RHEL)
 
-# Exit code 100 indicates that there are updates available
 # Exit code 0 indicates that there are no updates available
+# Exit code 1 indicates that the package manager returned an error
 # Exit code 127 indicates that the script failed to find a supported package manager
 
 count=0
