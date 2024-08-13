@@ -12,29 +12,16 @@ function convert_to_seconds() {
     local time_str="$1"
     local total_seconds=0
 
-    if [[ -z "${time_str}" ]]; then
-        return 1
-    fi
+    [[ -z "${time_str}" ]] && return 1
 
     # Extract days
-    if [[ "$time_str" =~ ([0-9]+)d ]]; then
-        total_seconds=$((total_seconds + BASH_REMATCH[1] * 86400))
-    fi
-
+    [[ "$time_str" =~ ([0-9]+)d ]] && total_seconds=$((total_seconds + BASH_REMATCH[1] * 86400))
     # Extract hours
-    if [[ "$time_str" =~ ([0-9]+)h ]]; then
-        total_seconds=$((total_seconds + BASH_REMATCH[1] * 3600))
-    fi
-
+    [[ "$time_str" =~ ([0-9]+)h ]] && total_seconds=$((total_seconds + BASH_REMATCH[1] * 3600))
     # Extract minutes
-    if [[ "$time_str" =~ ([0-9]+)m ]]; then
-        total_seconds=$((total_seconds + BASH_REMATCH[1] * 60))
-    fi
-
+    [[ "$time_str" =~ ([0-9]+)m ]] && total_seconds=$((total_seconds + BASH_REMATCH[1] * 60))
     # Extract seconds
-    if [[ "$time_str" =~ ([0-9]+)s ]]; then
-        total_seconds=$((total_seconds + BASH_REMATCH[1]))
-    fi
+    [[ "$time_str" =~ ([0-9]+)s ]] && total_seconds=$((total_seconds + BASH_REMATCH[1]))
 
     echo $total_seconds
 }
@@ -69,6 +56,7 @@ function test_convert_to_seconds() {
 }
 
 test_convert_to_seconds "10000s" 100 "false"
+test_convert_to_seconds "123a" "0" "false"
 test_convert_to_seconds "1d1h1m1s" 90061 "true"
 test_convert_to_seconds "1d 1h 1m 1s" 90061 "true"
 test_convert_to_seconds "1d-1h-1m-1s" 90061 "true"
