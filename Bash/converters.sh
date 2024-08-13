@@ -43,22 +43,37 @@ function test_convert_to_seconds() {
     local red='\033[0;31m'
     local green='\033[0;32m'
     local reset='\033[0m'
+    local should=$3
     local seconds
-    seconds=$(convert_to_seconds "$1")
-    if [[ "$seconds" == "$2" ]]; then
-        echo -e "Test ${green}passed${reset} expected: $2 \t actual: $seconds"
+    if seconds=$(convert_to_seconds "$1"); then
+        if [[ "$seconds" == "$2" ]]; then
+            if [[ "$should" == "true" ]]; then
+                echo -e "Should expect convert_to_seconds '$1' to return $2, returned ${green}$seconds${reset}"
+            else
+                echo -e "Should not expect convert_to_seconds '$1' to return $2, returned ${red}$seconds${reset}"
+                return 1
+            fi
+        else
+            if [[ "$should" == "true" ]]; then
+                echo -e "Should expect convert_to_seconds '$1' to return $2, returned ${red}$seconds${reset}"
+                return 1
+            else
+                echo -e "Should not expect convert_to_seconds '$1' to return $2, returned ${green}$seconds${reset}"
+            fi
+        fi
     else
-        echo -e "Test ${red}failed${reset} expected: $2 \t actual: ${red}$seconds${reset}"
+        echo -e "Should not expect convert_to_seconds '$1' to return $2, returned ${red}null${reset}"
         return 1
     fi
     return 0
 }
 
-test_convert_to_seconds "1d1h1m1s" 90061
-test_convert_to_seconds "1d 1h 1m 1s" 90061
-test_convert_to_seconds "1d-1h-1m-1s" 90061
-test_convert_to_seconds "1d:1h:1m:1s" 90061
-test_convert_to_seconds "1d " 86400
-test_convert_to_seconds " 1h" 3600
-test_convert_to_seconds "120m" 7200
-test_convert_to_seconds "10000s" 10000
+test_convert_to_seconds "10000s" 100 "false"
+test_convert_to_seconds "1d1h1m1s" 90061 "true"
+test_convert_to_seconds "1d 1h 1m 1s" 90061 "true"
+test_convert_to_seconds "1d-1h-1m-1s" 90061 "true"
+test_convert_to_seconds "1d:1h:1m:1s" 90061 "true"
+test_convert_to_seconds "1d " 86400 "true"
+test_convert_to_seconds " 1h" 3600 "true"
+test_convert_to_seconds "120m" 7200 "true"
+test_convert_to_seconds "10000s" 10000 "true"
