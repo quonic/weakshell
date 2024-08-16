@@ -40,27 +40,36 @@ done
 if ! command -v odin &>/dev/null; then
     echo "Changing directory to $_install_path"
     cd "$(dirname "$_install_path")" || exit
+
     echo "Odin-Lang is not installed. Installing..."
     git clone https://github.com/odin-lang/Odin.git
+
     echo "Changing directory to Odin"
     cd Odin || exit
+
     echo "Building Odin"
     make && ./build_odin.sh
-    # Add odin to bash profile as PATH
+
     echo "Adding $_install_path to PATH"
     echo "export PATH=$PATH:$PWD" >>~/.bash_profile
     cd ..
+
     echo "Done installing Odin"
 else
     echo "Changing directory to $_install_path"
     cd "$(dirname "$_install_path")" || exit
+
     echo "Odin-Lang is already installed. Updating..."
+
     echo "Changing directory to Odin"
     cd Odin || exit
+
     echo "Updating Odin"
     git pull
+
     echo "Building Odin"
     make && ./build_odin.sh
     cd ..
+
     echo "Done updating Odin"
 fi
